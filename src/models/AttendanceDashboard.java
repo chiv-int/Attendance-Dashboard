@@ -674,7 +674,6 @@ public class AttendanceDashboard {
         System.out.println("\nPress Enter to continue...");
         scanner.nextLine();
     }
-
     /**
      * Main method to run the application
      */
