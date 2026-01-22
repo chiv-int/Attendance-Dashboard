@@ -1,4 +1,7 @@
+package src;
 import java.util.*;
+
+import src.service.TeacherService;
 
 class MainProgram {
     public static void main(String[] args) {
