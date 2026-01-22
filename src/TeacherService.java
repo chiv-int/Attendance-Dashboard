@@ -1,10 +1,5 @@
-package src.service;
+package src;
 import java.util.*;
-
-import src.AttendanceRecord;
-import src.Course;
-import src.Exercise;
-import src.Lesson;
 
 public class TeacherService {
     private final Map<String, Course> courses;
