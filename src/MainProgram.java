@@ -1,54 +1,153 @@
-package src;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
+import service.*;
 
-class MainProgram {
+/**
+ * MainProgram - Entry point for the Attendance Dashboard
+ */
+public class MainProgram {
+    private static TeacherService teacherService;
+    private static Scanner scanner;
+    
     public static void main(String[] args) {
-        System.out.println("=== TEACHER SIDE ===\n");
+        scanner = new Scanner(System.in);
+        teacherService = new TeacherService();
+        seedDefaultCourses();
         
-        // Initialize teacher service
-        TeacherService teacherService = new TeacherService();
+        boolean running = true;
+        while (running) {
+            displayMainMenu();
+            String choice = scanner.nextLine().trim();
+            
+            switch (choice) {
+                case "1":
+                    showTeacherLoginFlow();
+                    break;
+                case "0":
+                    System.out.println("Thank you for using Attendance Dashboard. Goodbye!");
+                    running = false;
+                    break;
+                default:
+                    System.out.println("Invalid choice. Please try again.\n");
+            }
+        }
+        scanner.close();
+    }
+    
+    private static void displayMainMenu() {
+        System.out.println("\n===== ATTENDANCE DASHBOARD =====");
+        System.out.println("1. Teacher Login");
+        System.out.println("0. Exit");
+        System.out.print("Choose an option: ");
+    }
+    
+    private static void showTeacherLoginFlow() {
+        System.out.println("\n===== TEACHER LOGIN =====");
+        System.out.print("Enter teacher name: ");
+        String teacherName = scanner.nextLine().trim();
+        if (teacherName.isEmpty()) {
+            System.out.println("Teacher name is required.");
+            return;
+        }
+        System.out.println("Welcome, " + teacherName + "!");
         
-        // Teacher creates a course
-        Course javaCourse = teacherService.createCourse("Java Programming");
+        boolean selectingCourses = true;
+        while (selectingCourses) {
+            String courseName = selectCourseFromList();
+            if (courseName == null) {
+                selectingCourses = false;
+                continue;
+            }
+            showCourseMenu(courseName);
+        }
+    }
+    
+    private static void showCourseMenu(String courseName) {
+        boolean inCourseMenu = true;
+        while (inCourseMenu) {
+            System.out.println("\n===== " + courseName + " =====");
+            System.out.println("1. Attendance");
+            System.out.println("2. Lessons");
+            System.out.println("3. Exercises");
+            System.out.println("0. Back to Course List");
+            System.out.print("Choose an option: ");
+            
+            String choice = scanner.nextLine().trim();
+            switch (choice) {
+                case "1":
+                    handleAttendanceFlow(courseName);
+                    break;
+                case "2":
+                    teacherService.viewLessons(courseName);
+                    break;
+                case "3":
+                    teacherService.viewExercises(courseName);
+                    break;
+                case "0":
+                    inCourseMenu = false;
+                    break;
+                default:
+                    System.out.println("Invalid choice. Please try again.");
+            }
+        }
+    }
+    
+    private static void handleAttendanceFlow(String courseName) {
+        System.out.println("\n=== ATTENDANCE TOOLS ===");
+        String password = teacherService.generatePassword(courseName);
+        if (password != null) {
+            System.out.println("\n*** PASSWORD GENERATED: " + password + " ***");
+            teacherService.generateQR(courseName);
+        }
+    }
+    
+    private static String selectCourseFromList() {
+        List<String> courses = getCourseNames();
+        if (courses.isEmpty()) {
+            System.out.println("No courses available.");
+            return null;
+        }
         
-        // Teacher generates password
-        String password = teacherService.generatePassword("Java Programming");
+        System.out.println("\nSelect a class:");
+        for (int i = 0; i < courses.size(); i++) {
+            System.out.println((i + 1) + ". " + courses.get(i));
+        }
+        System.out.println("0. Logout");
+        System.out.print("Choose a class: ");
         
-        // Teacher generates QR code
-        teacherService.generateQR("Java Programming");
+        String choice = scanner.nextLine().trim();
+        if ("0".equals(choice)) {
+            return null;
+        }
         
-        // Teacher adds lessons and exercises
-        teacherService.addLesson("Java Programming", "Introduction to Java", "Learn basics of Java programming...");
-        teacherService.addExercise("Java Programming", "Hello World", "Create your first Java program");
+        try {
+            int index = Integer.parseInt(choice) - 1;
+            if (index >= 0 && index < courses.size()) {
+                return courses.get(index);
+            }
+        } catch (NumberFormatException ignored) {
+        }
         
-        System.out.println("\n=== STUDENT SIDE ===\n");
-        
-        // Initialize student service (shares same courses map)
-        Map<String, Course> sharedCourses = new HashMap<>();
-        sharedCourses.put("Java Programming", javaCourse);
-        StudentService studentService = new StudentService(sharedCourses);
-        
-        // Student views available courses
-        studentService.viewAvailableCourses();
-        
-        // Student marks attendance - Test 1: Correct password, Present
-        studentService.markAttendance("Java Programming", password, 
-                                     "John Doe", "Computer Science", 
-                                     AttendanceStatus.PRESENT);
-        
-        // Student marks attendance - Test 2: Correct password, Late
-        studentService.markAttendance("Java Programming", password, 
-                                     "Jane Smith", "Software Engineering", 
-                                     AttendanceStatus.LATE);
-        
-        // Student marks attendance - Test 3: Wrong password
-        studentService.markAttendance("Java Programming", "WRONG123", 
-                                     "Bob Johnson", "IT", 
-                                     AttendanceStatus.PRESENT);
-        
-        System.out.println("\n=== TEACHER VIEWS STUDENT LIST ===");
-        
-        // Teacher views student list
-        teacherService.viewStudentList("Java Programming");
+        System.out.println("Invalid selection. Please try again.");
+        return selectCourseFromList();
+    }
+    
+    private static List<String> getCourseNames() {
+        Map<String, models.Course> courseMap = teacherService.getCourseRepository().getAllCourses();
+        return new ArrayList<>(courseMap.keySet());
+    }
+    
+    private static void seedDefaultCourses() {
+        ensureCourseExists("Software Engineering");
+        ensureCourseExists("Computer Science");
+        ensureCourseExists("Cyber Security and Ai");
+    }
+    
+    private static void ensureCourseExists(String courseName) {
+        if (!teacherService.getCourseRepository().courseExists(courseName)) {
+            teacherService.createCourse(courseName);
+        }
     }
 }
