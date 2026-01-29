@@ -1,3 +1,5 @@
+package gui;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -53,7 +55,7 @@ public class SchoolHomeUI extends JFrame {
 
         // Logo
         JLabel logoLabel = new JLabel();
-        ImageIcon logoIcon = new ImageIcon("C:\\Users\\M\\OneDrive\\Documents\\Year2\\Introduction to Software Engineering\\project\\Attendance-Dashboard\\GUI\\Logo.jpg");
+        ImageIcon logoIcon = new ImageIcon("C:\\Users\\M\\OneDrive\\Documents\\Year2\\Introduction to Software Engineering\\project\\Attendance-Dashboard\\src\\gui\\Logo.jpg");
         Image scaledLogo = logoIcon.getImage().getScaledInstance(40, 40, Image.SCALE_SMOOTH);
         logoLabel.setIcon(new ImageIcon(scaledLogo));
         logoLabel.setBounds(20, 15, 40, 40);

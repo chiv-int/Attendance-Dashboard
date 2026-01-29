@@ -1,26 +1,19 @@
+package gui;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
-public class SchoolAttendanceUI extends JFrame {
+public class SchoolCourseUI extends JFrame {
     private JLabel homeLabel;
     private JLabel courseLabel;
-    private String currentCourseName;
-    private JPasswordField passwordField;
-    private JRadioButton presentButton;
-    private JRadioButton lateButton;
+    private List<CourseCard> courseCards;
 
-    public static void openAttendance(String courseName) {
-        SwingUtilities.invokeLater(() -> {
-            SchoolAttendanceUI attendanceFrame = new SchoolAttendanceUI(courseName);
-            attendanceFrame.setVisible(true);
-        });
-    }
-
-    public SchoolAttendanceUI(String courseName) {
-        this.currentCourseName = courseName;
-        
-        setTitle("The Valley University - " + courseName + " > Attendance");
+    public SchoolCourseUI() {
+        setTitle("The Valley University - Courses");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1200, 700);
         setLocationRelativeTo(null);
@@ -54,6 +47,7 @@ public class SchoolAttendanceUI extends JFrame {
                 Graphics2D g2d = (Graphics2D) g;
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
+                // Gradient background
                 GradientPaint gradient = new GradientPaint(0, 0, new Color(26, 26, 26), getWidth(), 0, new Color(45, 45, 45));
                 g2d.setPaint(gradient);
                 g2d.fillRect(0, 0, getWidth(), getHeight());
@@ -64,7 +58,7 @@ public class SchoolAttendanceUI extends JFrame {
 
         // Logo
         JLabel logoLabel = new JLabel();
-        ImageIcon logoIcon = new ImageIcon("C:\\Users\\M\\OneDrive\\Documents\\Year2\\Introduction to Software Engineering\\project\\Attendance-Dashboard\\GUI\\Logo.jpg");
+        ImageIcon logoIcon = new ImageIcon("C:\\Users\\M\\OneDrive\\Documents\\Year2\\Introduction to Software Engineering\\project\\Attendance-Dashboard\\src\\gui\\Logo.jpg");
         Image scaledLogo = logoIcon.getImage().getScaledInstance(40, 40, Image.SCALE_SMOOTH);
         logoLabel.setIcon(new ImageIcon(scaledLogo));
         logoLabel.setBounds(20, 15, 40, 40);
@@ -179,185 +173,71 @@ public class SchoolAttendanceUI extends JFrame {
                 homeFrame.setVisible(true);
             });
         } else if (clickedLabel.getText().equals("Course")) {
-            this.dispose();
-            SwingUtilities.invokeLater(() -> {
-                SchoolCourseUI courseFrame = new SchoolCourseUI();
-                courseFrame.setVisible(true);
-            });
+            homeLabel.setForeground(new Color(176, 176, 176));
+            courseLabel.setForeground(new Color(168, 126, 79));
+            homeLabel.repaint();
+            courseLabel.repaint();
         }
     }
 
     private JPanel createContent() {
-        JPanel wrapperPanel = new JPanel() {
+        // Wrapper panel for scrolling
+        JPanel wrapperPanel = new JPanel();
+        wrapperPanel.setLayout(new BorderLayout());
+        wrapperPanel.setBackground(new Color(78, 129, 136));
+
+        JPanel contentPanel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
-                Graphics2D g2d = (Graphics2D) g;
-                g2d.setColor(new Color(78, 129, 136));
-                g2d.fillRect(0, 0, getWidth(), getHeight());
             }
         };
-        wrapperPanel.setLayout(null);
+        contentPanel.setLayout(null);
+        contentPanel.setBackground(new Color(78, 129, 136));
+        contentPanel.setPreferredSize(new Dimension(1000, 600));
 
-        // Course header breadcrumb
-        JLabel breadcrumb = new JLabel("> " + currentCourseName + " > Attendance");
-        breadcrumb.setFont(new Font("Arial", Font.PLAIN, 16));
-        breadcrumb.setForeground(new Color(200, 200, 200));
-        breadcrumb.setBounds(50, 30, 800, 40);
-        wrapperPanel.add(breadcrumb);
+        // Title
+        JLabel courseTitle = new JLabel("Courses");
+        courseTitle.setFont(new Font("Arial", Font.PLAIN, 14));
+        courseTitle.setForeground(new Color(176, 176, 176));
+        courseTitle.setBounds(30, 20, 100, 30);
+        contentPanel.add(courseTitle);
 
-        // Form card
-        JPanel formPanel = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2d = (Graphics2D) g;
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-                g2d.setColor(new Color(245, 242, 233));
-                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
-            }
+        // Course cards
+        courseCards = new ArrayList<>();
+        String[] courses = {
+            "Introduction to Software Engineering",
+            "Data Structures and Algorithms",
+            "Web Development Fundamentals",
+            "Database Management Systems"
         };
-        formPanel.setLayout(null);
-        formPanel.setOpaque(false);
-        formPanel.setBounds(200, 100, 800, 250);
+        String lecturer = "Lecturer";
 
-        // Password label
-        JLabel passwordLabel = new JLabel("Password:");
-        passwordLabel.setFont(new Font("Arial", Font.PLAIN, 14));
-        passwordLabel.setForeground(new Color(60, 60, 60));
-        passwordLabel.setBounds(60, 50, 150, 30);
-        formPanel.add(passwordLabel);
-
-        // Password field
-        passwordField = new JPasswordField();
-        passwordField.setBounds(250, 50, 350, 35);
-        passwordField.setFont(new Font("Arial", Font.PLAIN, 13));
-        passwordField.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
-        formPanel.add(passwordField);
-
-        // Options label
-        JLabel optionsLabel = new JLabel("Options:");
-        optionsLabel.setFont(new Font("Arial", Font.PLAIN, 14));
-        optionsLabel.setForeground(new Color(60, 60, 60));
-        optionsLabel.setBounds(60, 130, 150, 30);
-        formPanel.add(optionsLabel);
-
-        // Radio buttons
-        presentButton = new JRadioButton("Present");
-        presentButton.setBounds(250, 130, 100, 30);
-        presentButton.setFont(new Font("Arial", Font.PLAIN, 13));
-        presentButton.setOpaque(false);
-        presentButton.setSelected(true);
-        formPanel.add(presentButton);
-
-        lateButton = new JRadioButton("Late");
-        lateButton.setBounds(380, 130, 100, 30);
-        lateButton.setFont(new Font("Arial", Font.PLAIN, 13));
-        lateButton.setOpaque(false);
-        formPanel.add(lateButton);
-
-        // Button group
-        ButtonGroup group = new ButtonGroup();
-        group.add(presentButton);
-        group.add(lateButton);
-
-        wrapperPanel.add(formPanel);
-
-        // Submit button
-        JButton submitBtn = new JButton("Submit");
-        submitBtn.setBounds(860, 360, 140, 50);
-        submitBtn.setFont(new Font("Arial", Font.BOLD, 16));
-        submitBtn.setBackground(new Color(168, 126, 79));
-        submitBtn.setForeground(Color.WHITE);
-        submitBtn.setBorder(BorderFactory.createLineBorder(new Color(168, 126, 79), 1));
-        submitBtn.setFocusPainted(false);
-        submitBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        submitBtn.addActionListener(e -> handleSubmit());
-        wrapperPanel.add(submitBtn);
-
-        return wrapperPanel;
-    }
-
-    private void handleSubmit() {
-        String password = new String(passwordField.getPassword());
-        String status = presentButton.isSelected() ? "Present" : "Late";
-
-        if (password.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Please enter a password", "Error", JOptionPane.ERROR_MESSAGE);
-            return;
+        int yPos = 70;
+        for (String courseName : courses) {
+            CourseCard card = new CourseCard(courseName, lecturer);
+            card.setBounds(30, yPos, 1100, 100);
+            card.setCursor(new Cursor(Cursor.HAND_CURSOR));
+            card.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    SchoolCourseDetailUI courseDetailUI = new SchoolCourseDetailUI(courseName);
+                    courseDetailUI.setVisible(true);
+                    disposeCourseFrame();
+                }
+            });
+            contentPanel.add(card);
+            courseCards.add(card);
+            yPos += 120;
         }
 
-        // Show success message with custom dialog
-        JDialog successDialog = new JDialog(this, "Success", true);
-        successDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-        successDialog.setSize(500, 300);
-        successDialog.setLocationRelativeTo(this);
-        successDialog.setResizable(false);
+        // Scroll pane
+        JScrollPane scrollPane = new JScrollPane(contentPanel, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollPane.setBorder(null);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(10);
+        wrapperPanel.add(scrollPane, BorderLayout.CENTER);
 
-        JPanel dialogPanel = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2d = (Graphics2D) g;
-                g2d.setColor(new Color(0, 0, 0, 200));
-                g2d.fillRect(0, 0, getWidth(), getHeight());
-            }
-        };
-        dialogPanel.setLayout(null);
-        dialogPanel.setOpaque(false);
-
-        // Success message card
-        JPanel cardPanel = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2d = (Graphics2D) g;
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2d.setColor(new Color(245, 242, 233));
-                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
-            }
-        };
-        cardPanel.setLayout(null);
-        cardPanel.setOpaque(false);
-        cardPanel.setBounds(50, 80, 400, 100);
-
-        JLabel successLabel = new JLabel("Submission sent!");
-        successLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        successLabel.setForeground(new Color(60, 60, 60));
-        successLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        successLabel.setBounds(0, 25, 400, 60);
-        cardPanel.add(successLabel);
-
-        dialogPanel.add(cardPanel);
-
-        // Continue label
-        JLabel continueLabel = new JLabel("Click anywhere to continue");
-        continueLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-        continueLabel.setForeground(new Color(200, 200, 200));
-        continueLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        continueLabel.setBounds(0, 220, 500, 10);
-        dialogPanel.add(continueLabel);
-
-        // Add mouse listener to close dialog
-        dialogPanel.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                successDialog.dispose();
-                navigateToCourseDetail();
-            }
-        });
-
-        successDialog.add(dialogPanel);
-        successDialog.setVisible(true);
-    }
-
-    private void navigateToCourseDetail() {
-        this.dispose();
-        SwingUtilities.invokeLater(() -> {
-            SchoolCourseDetailUI detailFrame = new SchoolCourseDetailUI(currentCourseName);
-            detailFrame.setVisible(true);
-        });
+        return wrapperPanel;
     }
 
     private JPanel createFooter() {
@@ -405,9 +285,54 @@ public class SchoolAttendanceUI extends JFrame {
         }
     }
 
+    private void disposeCourseFrame() {
+        this.dispose();
+    }
+
+    public static void openCourseDetail(String courseName) {
+        SwingUtilities.invokeLater(() -> {
+            SchoolCourseDetailUI detailFrame = new SchoolCourseDetailUI(courseName);
+            detailFrame.setVisible(true);
+        });
+    }
+
+    // Inner class for course card
+    private static class CourseCard extends JPanel {
+        private String courseName;
+        private String lecturer;
+
+        public CourseCard(String courseName, String lecturer) {
+            this.courseName = courseName;
+            this.lecturer = lecturer;
+            setLayout(null);
+            setOpaque(true);
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Graphics2D g2d = (Graphics2D) g;
+            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            // Cream background with rounded corners
+            g2d.setColor(new Color(245, 242, 233));
+            g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
+
+            // Course name
+            g2d.setColor(new Color(168, 126, 79));
+            g2d.setFont(new Font("Arial", Font.BOLD, 18));
+            g2d.drawString(courseName, 25, 35);
+
+            // Lecturer label
+            g2d.setColor(new Color(60, 60, 60));
+            g2d.setFont(new Font("Arial", Font.PLAIN, 13));
+            g2d.drawString(lecturer, 25, 65);
+        }
+    }
+
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            SchoolAttendanceUI frame = new SchoolAttendanceUI("Introduction to Software Engineering");
+            SchoolCourseUI frame = new SchoolCourseUI();
             frame.setVisible(true);
         });
     }

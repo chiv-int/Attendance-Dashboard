@@ -1,3 +1,5 @@
+package gui;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -42,7 +44,7 @@ public class SchoolLoginUI extends JFrame {
         
         // Profile avatar from filepath
         JLabel avatarLabel = new JLabel();
-        ImageIcon avatar = new ImageIcon("C:\\Users\\M\\OneDrive\\Documents\\Year2\\Introduction to Software Engineering\\project\\Attendance-Dashboard\\GUI\\Logo.jpg");
+        ImageIcon avatar = new ImageIcon("C:\\Users\\M\\OneDrive\\Documents\\Year2\\Introduction to Software Engineering\\project\\Attendance-Dashboard\\src\\gui\\Logo.jpg");
         Image scaledImage = avatar.getImage().getScaledInstance(50, 50, Image.SCALE_SMOOTH);
         avatarLabel.setIcon(new ImageIcon(scaledImage));
         avatarLabel.setBounds(125, 15, 50, 50);

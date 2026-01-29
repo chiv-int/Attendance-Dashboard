@@ -1,17 +1,29 @@
+package gui;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
-public class SchoolCourseUI extends JFrame {
+public class SchoolCourseDetailUI extends JFrame {
     private JLabel homeLabel;
     private JLabel courseLabel;
-    private List<CourseCard> courseCards;
+    private String currentCourseName;
+    private JPanel contentPanel;
+    private List<ExpandableSection> sections;
 
-    public SchoolCourseUI() {
-        setTitle("The Valley University - Courses");
+    public static void openCourseDetail(String courseName) {
+        SwingUtilities.invokeLater(() -> {
+            SchoolCourseDetailUI detailFrame = new SchoolCourseDetailUI(courseName);
+            detailFrame.setVisible(true);
+        });
+    }
+
+    public SchoolCourseDetailUI(String courseName) {
+        this.currentCourseName = courseName;
+        
+        setTitle("The Valley University - " + courseName);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1200, 700);
         setLocationRelativeTo(null);
@@ -27,7 +39,7 @@ public class SchoolCourseUI extends JFrame {
         mainPanel.add(headerPanel, BorderLayout.NORTH);
 
         // Content area
-        JPanel contentPanel = createContent();
+        contentPanel = createContent();
         mainPanel.add(contentPanel, BorderLayout.CENTER);
 
         // Footer
@@ -56,7 +68,7 @@ public class SchoolCourseUI extends JFrame {
 
         // Logo
         JLabel logoLabel = new JLabel();
-        ImageIcon logoIcon = new ImageIcon("C:\\Users\\M\\OneDrive\\Documents\\Year2\\Introduction to Software Engineering\\project\\Attendance-Dashboard\\GUI\\Logo.jpg");
+        ImageIcon logoIcon = new ImageIcon("C:\\Users\\M\\OneDrive\\Documents\\Year2\\Introduction to Software Engineering\\project\\Attendance-Dashboard\\src\\gui\\Logo.jpg");
         Image scaledLogo = logoIcon.getImage().getScaledInstance(40, 40, Image.SCALE_SMOOTH);
         logoLabel.setIcon(new ImageIcon(scaledLogo));
         logoLabel.setBounds(20, 15, 40, 40);
@@ -171,10 +183,11 @@ public class SchoolCourseUI extends JFrame {
                 homeFrame.setVisible(true);
             });
         } else if (clickedLabel.getText().equals("Course")) {
-            homeLabel.setForeground(new Color(176, 176, 176));
-            courseLabel.setForeground(new Color(168, 126, 79));
-            homeLabel.repaint();
-            courseLabel.repaint();
+            this.dispose();
+            SwingUtilities.invokeLater(() -> {
+                SchoolCourseUI courseFrame = new SchoolCourseUI();
+                courseFrame.setVisible(true);
+            });
         }
     }
 
@@ -184,53 +197,38 @@ public class SchoolCourseUI extends JFrame {
         wrapperPanel.setLayout(new BorderLayout());
         wrapperPanel.setBackground(new Color(78, 129, 136));
 
-        JPanel contentPanel = new JPanel() {
+        JPanel contentPanelMain = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
             }
         };
-        contentPanel.setLayout(null);
-        contentPanel.setBackground(new Color(78, 129, 136));
-        contentPanel.setPreferredSize(new Dimension(1000, 600));
+        contentPanelMain.setLayout(null);
+        contentPanelMain.setBackground(new Color(78, 129, 136));
+        contentPanelMain.setPreferredSize(new Dimension(1000, 800));
 
-        // Title
-        JLabel courseTitle = new JLabel("Courses");
-        courseTitle.setFont(new Font("Arial", Font.PLAIN, 14));
-        courseTitle.setForeground(new Color(176, 176, 176));
-        courseTitle.setBounds(30, 20, 100, 30);
-        contentPanel.add(courseTitle);
+        // Course name header
+        JLabel courseNameHeader = new JLabel("> " + currentCourseName);
+        courseNameHeader.setFont(new Font("Arial", Font.PLAIN, 18));
+        courseNameHeader.setForeground(new Color(200, 200, 200));
+        courseNameHeader.setBounds(50, 30, 800, 40);
+        contentPanelMain.add(courseNameHeader);
 
-        // Course cards
-        courseCards = new ArrayList<>();
-        String[] courses = {
-            "Introduction to Software Engineering",
-            "Data Structures and Algorithms",
-            "Web Development Fundamentals",
-            "Database Management Systems"
-        };
-        String lecturer = "Lecturer";
-
-        int yPos = 70;
-        for (String courseName : courses) {
-            CourseCard card = new CourseCard(courseName, lecturer);
-            card.setBounds(30, yPos, 1100, 100);
-            card.setCursor(new Cursor(Cursor.HAND_CURSOR));
-            card.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseClicked(MouseEvent e) {
-                    SchoolCourseDetailUI courseDetailUI = new SchoolCourseDetailUI(courseName);
-                    courseDetailUI.setVisible(true);
-                    disposeCourseFrame();
-                }
-            });
-            contentPanel.add(card);
-            courseCards.add(card);
-            yPos += 120;
+        // Create expandable sections
+        sections = new ArrayList<>();
+        String[] sectionTitles = {"Attendance", "Week 1", "Week 2", "Week 3"};
+        
+        int yPos = 90;
+        for (String title : sectionTitles) {
+            ExpandableSection section = new ExpandableSection(title, currentCourseName);
+            section.setBounds(100, yPos, 1000, 60);
+            contentPanelMain.add(section);
+            sections.add(section);
+            yPos += 100;
         }
 
         // Scroll pane
-        JScrollPane scrollPane = new JScrollPane(contentPanel, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        JScrollPane scrollPane = new JScrollPane(contentPanelMain, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         scrollPane.setBorder(null);
         scrollPane.getVerticalScrollBar().setUnitIncrement(10);
         wrapperPanel.add(scrollPane, BorderLayout.CENTER);
@@ -283,27 +281,34 @@ public class SchoolCourseUI extends JFrame {
         }
     }
 
-    private void disposeCourseFrame() {
-        this.dispose();
-    }
-
-    public static void openCourseDetail(String courseName) {
-        SwingUtilities.invokeLater(() -> {
-            SchoolCourseDetailUI detailFrame = new SchoolCourseDetailUI(courseName);
-            detailFrame.setVisible(true);
-        });
-    }
-
-    // Inner class for course card
-    private static class CourseCard extends JPanel {
+    // Inner class for expandable section
+    private class ExpandableSection extends JPanel {
+        private String title;
         private String courseName;
-        private String lecturer;
+        private boolean isExpanded;
 
-        public CourseCard(String courseName, String lecturer) {
+        public ExpandableSection(String title, String courseName) {
+            this.title = title;
             this.courseName = courseName;
-            this.lecturer = lecturer;
+            this.isExpanded = false;
             setLayout(null);
             setOpaque(true);
+            setPreferredSize(new Dimension(1000, 60));
+
+            addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    if (title.equals("Attendance")) {
+                        SchoolAttendanceUI.openAttendance(courseName);
+                        SchoolCourseDetailUI.this.dispose();
+                    } else {
+                        isExpanded = !isExpanded;
+                        repaint();
+                    }
+                }
+            });
+
+            setCursor(new Cursor(Cursor.HAND_CURSOR));
         }
 
         @Override
@@ -316,21 +321,24 @@ public class SchoolCourseUI extends JFrame {
             g2d.setColor(new Color(245, 242, 233));
             g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
 
-            // Course name
+            // Plus icon
             g2d.setColor(new Color(168, 126, 79));
-            g2d.setFont(new Font("Arial", Font.BOLD, 18));
-            g2d.drawString(courseName, 25, 35);
+            g2d.setFont(new Font("Arial", Font.BOLD, 20));
+            g2d.drawString("+", 15, 40);
 
-            // Lecturer label
-            g2d.setColor(new Color(60, 60, 60));
-            g2d.setFont(new Font("Arial", Font.PLAIN, 13));
-            g2d.drawString(lecturer, 25, 65);
+            // Section title
+            g2d.setFont(new Font("Arial", Font.BOLD, 16));
+            g2d.drawString(title, 45, 40);
+        }
+
+        public boolean isExpanded() {
+            return isExpanded;
         }
     }
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            SchoolCourseUI frame = new SchoolCourseUI();
+            SchoolCourseDetailUI frame = new SchoolCourseDetailUI("Introduction to Software Engineering");
             frame.setVisible(true);
         });
     }
