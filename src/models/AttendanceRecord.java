@@ -2,6 +2,12 @@ package models;
 
 import java.time.LocalDateTime;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
+/**
+ * AttendanceRecord class to track attendance for a specific lesson
+ */
 public class AttendanceRecord {
     private final int recordNumber;
     private final String studentName;
