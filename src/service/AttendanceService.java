@@ -34,8 +34,12 @@ public class AttendanceService {
         // Get next record number
         int recordNumber = course.getAttendanceRecords().size() + 1;
         
+        // Convert standalone AttendanceStatus to AttendanceRecord.AttendanceStatus
+        AttendanceRecord.AttendanceStatus recordStatus = 
+            AttendanceRecord.AttendanceStatus.valueOf(status.name());
+        
         // Create and add attendance record
-        AttendanceRecord record = new AttendanceRecord(recordNumber, studentName, major, status);
+        AttendanceRecord record = new AttendanceRecord(recordNumber, studentName, major, recordStatus);
         course.addAttendanceRecord(record);
         
         System.out.println("Attendance marked successfully!");

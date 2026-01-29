@@ -1,49 +1,76 @@
 package models;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
+/**
+ * AttendanceRecord model - Represents a single attendance entry
+ */
 public class AttendanceRecord {
-    private final int recordNumber;
-    private final String studentName;
-    private final String major;
-    private final AttendanceStatus status;
+    public enum AttendanceStatus {
+        PRESENT, ABSENT, LATE, EXCUSED
+    }
+    
+    private final String recordId;
+    private final String lessonId;
+    private final String studentId;
+    private AttendanceStatus status;
+    private final String markedBy; // Teacher ID who marked attendance
     private final LocalDateTime timestamp;
     
-    public AttendanceRecord(int recordNumber, String studentName, String major, AttendanceStatus status) {
-        this.recordNumber = recordNumber;
-        this.studentName = studentName;
-        this.major = major;
+    // Full constructor
+    public AttendanceRecord(String recordId, String lessonId, String studentId,
+                          AttendanceStatus status, String markedBy) {
+        this.recordId = recordId;
+        this.lessonId = lessonId;
+        this.studentId = studentId;
         this.status = status;
+        this.markedBy = markedBy;
         this.timestamp = LocalDateTime.now();
     }
     
-    public int getRecordNumber() {
-        return recordNumber;
+    // Simplified constructor for backward compatibility
+    public AttendanceRecord(int recordNumber, String studentName, String major, 
+                          AttendanceRecord.AttendanceStatus status) {
+        this("REC-" + recordNumber, null, studentName, status, null);
     }
     
-    public String getStudentName() {
-        return studentName;
+    public String getRecordId() {
+        return recordId;
     }
     
-    public String getMajor() {
-        return major;
+    public String getLessonId() {
+        return lessonId;
+    }
+    
+    public String getStudentId() {
+        return studentId;
     }
     
     public AttendanceStatus getStatus() {
         return status;
     }
     
+    public void setStatus(AttendanceStatus status) {
+        this.status = status;
+    }
+    
+    public String getMarkedBy() {
+        return markedBy;
+    }
+    
     public LocalDateTime getTimestamp() {
         return timestamp;
     }
     
+    public String getFormattedTimestamp() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        return timestamp.format(formatter);
+    }
+    
     @Override
     public String toString() {
-        String dateStr = String.format("%02d/%02d/%04d", 
-            timestamp.getDayOfMonth(), 
-            timestamp.getMonthValue(), 
-            timestamp.getYear());
-        return String.format("%-3d %-20s %-15s %-20s %-10s", 
-            recordNumber, studentName, major, dateStr, status);
+        return String.format("Attendance[%s]: Student=%s, Lesson=%s, Status=%s, Time=%s",
+                recordId, studentId, lessonId, status, getFormattedTimestamp());
     }
 }
