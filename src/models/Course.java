@@ -1,94 +1,66 @@
 package models;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
- * Course class representing an academic course
+ * Course model - Responsibility: Store course information
  */
 public class Course {
-    private final String courseId;
-    private final String courseCode;
-    private final String courseName;
-    private final String teacherId;
-    private final String schedule;
-    private final int credits;
-    private final List<String> enrolledStudentIds;
+    private String courseName;
+    private String password;
+    private final List<AttendanceRecord> attendanceRecords;
     private final List<Lesson> lessons;
-    private final List<Quiz> quizzes;
-
-    public Course(String courseId, String courseCode, String courseName,
-                  String teacherId, String schedule, int credits) {
-        this.courseId = courseId;
-        this.courseCode = courseCode;
+    private final List<Exercise> exercises;
+    
+    public Course(String courseName, String password) {
         this.courseName = courseName;
-        this.teacherId = teacherId;
-        this.schedule = schedule;
-        this.credits = credits;
-        this.enrolledStudentIds = new ArrayList<>();
+        this.password = password;
+        this.attendanceRecords = new ArrayList<>();
         this.lessons = new ArrayList<>();
-        this.quizzes = new ArrayList<>();
+        this.exercises = new ArrayList<>();
     }
-
-    public void enrollStudent(String studentId) {
-        if (!enrolledStudentIds.contains(studentId)) {
-            enrolledStudentIds.add(studentId);
-        }
-    }
-
-    public void addLesson(Lesson lesson) {
-        lessons.add(lesson);
-    }
-
-    public void addQuiz(Quiz quiz) {
-        quizzes.add(quiz);
-    }
-
-    // Getters
-    public String getCourseId() {
-        return courseId;
-    }
-
-    public String getCourseCode() {
-        return courseCode;
-    }
-
+    
     public String getCourseName() {
         return courseName;
     }
-
-    public String getTeacherId() {
-        return teacherId;
+    
+    public void setCourseName(String courseName) {
+        this.courseName = courseName;
     }
-
-    public String getSchedule() {
-        return schedule;
+    
+    public void setPassword(String password) {
+        this.password = password;
     }
-
-    public int getCredits() {
-        return credits;
+    
+    public String getPassword() {
+        return password;
     }
-
-    public List<String> getEnrolledStudentIds() {
-        return new ArrayList<>(enrolledStudentIds);
+    
+    public boolean verifyPassword(String inputPassword) {
+        return this.password != null && this.password.equals(inputPassword);
     }
-
+    
+    public List<AttendanceRecord> getAttendanceRecords() {
+        return attendanceRecords;
+    }
+    
+    public void addAttendanceRecord(AttendanceRecord record) {
+        attendanceRecords.add(record);
+    }
+    
+    public void addLesson(Lesson lesson) {
+        lessons.add(lesson);
+    }
+    
+    public void addExercise(Exercise exercise) {
+        exercises.add(exercise);
+    }
+    
     public List<Lesson> getLessons() {
-        return new ArrayList<>(lessons);
+        return lessons;
     }
-
-    public List<Quiz> getQuizzes() {
-        return new ArrayList<>(quizzes);
-    }
-
-    public int getEnrolledStudentCount() {
-        return enrolledStudentIds.size();
-    }
-
-    @Override
-    public String toString() {
-        return String.format("%s - %s (%s) | Students: %d | Lessons: %d | Quizzes: %d",
-                courseCode, courseName, schedule,
-                enrolledStudentIds.size(), lessons.size(), quizzes.size());
+    
+    public List<Exercise> getExercises() {
+        return exercises;
     }
 }
