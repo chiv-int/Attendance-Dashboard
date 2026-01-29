@@ -9,69 +9,47 @@ import java.time.format.DateTimeFormatter;
  * AttendanceRecord class to track attendance for a specific lesson
  */
 public class AttendanceRecord {
-    private final String recordId;
-    private final String lessonId;
-    private final String studentId;
-    private AttendanceStatus status;
-    private LocalDateTime markedAt;
-    private final String markedBy; // User ID of who marked the attendance
-
-    public enum AttendanceStatus {
-        PRESENT,
-        ABSENT,
-        LATE,
-        EXCUSED
-    }
-
-    public AttendanceRecord(String recordId, String lessonId, String studentId,
-                            AttendanceStatus status, String markedBy) {
-        this.recordId = recordId;
-        this.lessonId = lessonId;
-        this.studentId = studentId;
+    private final int recordNumber;
+    private final String studentName;
+    private final String major;
+    private final AttendanceStatus status;
+    private final LocalDateTime timestamp;
+    
+    public AttendanceRecord(int recordNumber, String studentName, String major, AttendanceStatus status) {
+        this.recordNumber = recordNumber;
+        this.studentName = studentName;
+        this.major = major;
         this.status = status;
-        this.markedAt = LocalDateTime.now();
-        this.markedBy = markedBy;
+        this.timestamp = LocalDateTime.now();
     }
-
-    public String getFormattedMarkedAt() {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        return markedAt.format(formatter);
+    
+    public int getRecordNumber() {
+        return recordNumber;
     }
-
-    // Getters
-    public String getRecordId() {
-        return recordId;
+    
+    public String getStudentName() {
+        return studentName;
     }
-
-    public String getLessonId() {
-        return lessonId;
+    
+    public String getMajor() {
+        return major;
     }
-
-    public String getStudentId() {
-        return studentId;
-    }
-
+    
     public AttendanceStatus getStatus() {
         return status;
     }
-
-    public LocalDateTime getMarkedAt() {
-        return markedAt;
+    
+    public LocalDateTime getTimestamp() {
+        return timestamp;
     }
-
-    public String getMarkedBy() {
-        return markedBy;
-    }
-
-    // Setter for status (in case it needs to be updated)
-    public void setStatus(AttendanceStatus status) {
-        this.status = status;
-        this.markedAt = LocalDateTime.now();
-    }
-
+    
     @Override
     public String toString() {
-        return String.format("Attendance: Student %s | Status: %s | Marked: %s",
-                studentId, status, getFormattedMarkedAt());
+        String dateStr = String.format("%02d/%02d/%04d", 
+            timestamp.getDayOfMonth(), 
+            timestamp.getMonthValue(), 
+            timestamp.getYear());
+        return String.format("%-3d %-20s %-15s %-20s %-10s", 
+            recordNumber, studentName, major, dateStr, status);
     }
 }
