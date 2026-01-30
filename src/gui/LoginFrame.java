@@ -5,14 +5,14 @@ import models.Teacher;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.RoundRectangle2D;
+import javax.swing.*;
+import models.Teacher;
 
 public class LoginFrame extends JFrame {
-    private JTextField userField, idField;
-    private JPasswordField passField;
-    private AttendanceDashboard dashboard;
+    private final JTextField userField;
+    private final JPasswordField passField;
 
-    public LoginFrame(AttendanceDashboard dashboard) {
-        this.dashboard = dashboard;
+    public LoginFrame() {
         setTitle("Log In");
         setSize(1000, 750);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -53,19 +53,17 @@ public class LoginFrame extends JFrame {
         card.add(lblSchool);
 
         // Input Fields
-        createLabel(card, "ID", 200);
-        idField = createInputField(card, 225);
-        createLabel(card, "Username", 285);
-        userField = createInputField(card, 310);
-        createLabel(card, "Password", 370);
+        createLabel(card, "Username", 200);
+        userField = createInputField(card, 225);
+        createLabel(card, "Password", 285);
         passField = new JPasswordField();
-        passField.setBounds(50, 395, 350, 40);
+        passField.setBounds(50, 310, 350, 40);
         passField.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
         card.add(passField);
 
         // Log In Button
         JButton btnLogin = new JButton("Log In");
-        btnLogin.setBounds(300, 470, 100, 40);
+        btnLogin.setBounds(300, 385, 100, 40);
         btnLogin.setBackground(new Color(156, 126, 101)); // Brown button color
         btnLogin.setForeground(Color.WHITE);
         btnLogin.setFocusPainted(false);

@@ -22,7 +22,7 @@ public class StudentService {
      */
     public boolean markAttendance(String courseName, String password, 
                                   String studentName, String major, 
-                                  AttendanceStatus status) {
+                                  AttendanceRecord.AttendanceStatus status) {
         return attendanceService.markAttendance(courseName, password, studentName, major, status);
     }
     

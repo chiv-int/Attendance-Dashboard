@@ -18,7 +18,7 @@ public class AttendanceService {
      */
     public boolean markAttendance(String courseName, String password, 
                                   String studentName, String major, 
-                                  AttendanceStatus status) {
+                                  AttendanceRecord.AttendanceStatus status) {
         Course course = courseRepository.getCourse(courseName);
         
         if (course == null) {
@@ -34,12 +34,8 @@ public class AttendanceService {
         // Get next record number
         int recordNumber = course.getAttendanceRecords().size() + 1;
         
-        // Convert standalone AttendanceStatus to AttendanceRecord.AttendanceStatus
-        AttendanceRecord.AttendanceStatus recordStatus = 
-            AttendanceRecord.AttendanceStatus.valueOf(status.name());
-        
         // Create and add attendance record
-        AttendanceRecord record = new AttendanceRecord(recordNumber, studentName, major, recordStatus);
+        AttendanceRecord record = new AttendanceRecord(recordNumber, studentName, major, status);
         course.addAttendanceRecord(record);
         
         System.out.println("Attendance marked successfully!");
