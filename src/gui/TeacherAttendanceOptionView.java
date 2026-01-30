@@ -71,53 +71,114 @@ public class TeacherAttendanceOptionView extends JPanel {
         
         add(scrollPane, BorderLayout.CENTER);
     }
-    
+
     private JPanel createHeader() {
-        JPanel headerPanel = new JPanel(new BorderLayout());
-        headerPanel.setBackground(new Color(52, 58, 64)); // Slightly lighter dark gray
-        headerPanel.setBorder(new EmptyBorder(15, 20, 15, 20));
-        
-        // Left - Logo
-        JLabel logoLabel = new JLabel("Logo");
-        logoLabel.setFont(new Font("SansSerif", Font.PLAIN, 16));
-        logoLabel.setForeground(Color.WHITE);
-        headerPanel.add(logoLabel, BorderLayout.WEST);
-        
-        // Center - Navigation buttons
-        JPanel navPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 30, 0));
-        navPanel.setOpaque(false);
-        
-        JButton homeButton = new JButton("Home");
-        homeButton.setFont(new Font("SansSerif", Font.PLAIN, 16));
+        JPanel headerPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                // Gradient background
+                GradientPaint gradient = new GradientPaint(0, 0, new Color(26, 26, 26), getWidth(), 0, new Color(45, 45, 45));
+                g2d.setPaint(gradient);
+                g2d.fillRect(0, 0, getWidth(), getHeight());
+            }
+        };
+        headerPanel.setLayout(null);
+        headerPanel.setPreferredSize(new Dimension(0, 70));
+
+        // Logo
+        JLabel logoLabel = new JLabel();
+        ImageIcon logoIcon = new ImageIcon("C:\\Users\\M\\OneDrive\\Documents\\Year2\\Introduction to Software Engineering\\project\\Attendance-Dashboard\\src\\gui\\Logo.jpg");
+        Image scaledLogo = logoIcon.getImage().getScaledInstance(40, 40, Image.SCALE_SMOOTH);
+        logoLabel.setIcon(new ImageIcon(scaledLogo));
+        logoLabel.setBounds(20, 15, 40, 40);
+        headerPanel.add(logoLabel);
+
+        // School name
+        JLabel schoolNameLabel = new JLabel("The Valley University");
+        schoolNameLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        schoolNameLabel.setForeground(Color.WHITE);
+        schoolNameLabel.setBounds(70, 15, 250, 40);
+        headerPanel.add(schoolNameLabel);
+
+        // Navigation - Home button
+        JLabel homeButton = new JLabel("Home");
+        homeButton.setFont(new Font("Arial", Font.BOLD, 13));
         homeButton.setForeground(Color.WHITE);
-        homeButton.setBackground(new Color(52, 58, 64));
-        homeButton.setBorderPainted(false);
-        homeButton.setFocusPainted(false);
+        homeButton.setHorizontalAlignment(SwingConstants.CENTER);
         homeButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        homeButton.setContentAreaFilled(false);
-        homeButton.addActionListener(e -> mainFrame.backToTeacherDashboard());
-        
-        JButton classesButton = new JButton("Classes");
-        classesButton.setFont(new Font("SansSerif", Font.PLAIN, 16));
+        homeButton.setBounds(480, 15, 80, 40);
+        homeButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                mainFrame.backToTeacherDashboard();
+            }
+        });
+        headerPanel.add(homeButton);
+
+        // Navigation - Classes button
+        JLabel classesButton = new JLabel("Classes");
+        classesButton.setFont(new Font("Arial", Font.BOLD, 13));
         classesButton.setForeground(new Color(150, 150, 150)); // Grayed out
-        classesButton.setBackground(new Color(52, 58, 64));
-        classesButton.setBorderPainted(false);
-        classesButton.setFocusPainted(false);
+        classesButton.setHorizontalAlignment(SwingConstants.CENTER);
         classesButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        classesButton.setContentAreaFilled(false);
-        
-        navPanel.add(homeButton);
-        navPanel.add(classesButton);
-        
-        headerPanel.add(navPanel, BorderLayout.CENTER);
-        
-        // Right - Profile
-        JLabel pfpLabel = new JLabel("pfp");
-        pfpLabel.setFont(new Font("SansSerif", Font.PLAIN, 16));
-        pfpLabel.setForeground(Color.WHITE);
-        headerPanel.add(pfpLabel, BorderLayout.EAST);
-        
+        classesButton.setBounds(580, 15, 80, 40);
+        headerPanel.add(classesButton);
+
+        // User info panel
+        JPanel userPanel = new JPanel();
+        userPanel.setLayout(null);
+        userPanel.setOpaque(false);
+        userPanel.setBounds(getWidth() - 250, 10, 240, 50);
+
+        JLabel userNameLabel = new JLabel("Teacher");
+        userNameLabel.setFont(new Font("Arial", Font.BOLD, 12));
+        userNameLabel.setForeground(Color.WHITE);
+        userNameLabel.setBounds(10, 5, 120, 20);
+        userPanel.add(userNameLabel);
+
+        JLabel userRoleLabel = new JLabel("Teacher Account");
+        userRoleLabel.setFont(new Font("Arial", Font.PLAIN, 10));
+        userRoleLabel.setForeground(new Color(136, 136, 136));
+        userRoleLabel.setBounds(10, 25, 120, 15);
+        userPanel.add(userRoleLabel);
+
+        JButton logoutBtn = new JButton("Logout");
+        logoutBtn.setBounds(140, 10, 90, 30);
+        logoutBtn.setFont(new Font("Arial", Font.BOLD, 12));
+        logoutBtn.setForeground(new Color(168, 126, 79));
+        logoutBtn.setBackground(new Color(26, 26, 26));
+        logoutBtn.setBorder(BorderFactory.createLineBorder(new Color(168, 126, 79), 1));
+        logoutBtn.setFocusPainted(false);
+        logoutBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        logoutBtn.addActionListener(e -> handleLogout());
+        userPanel.add(logoutBtn);
+
+        headerPanel.add(userPanel);
+
         return headerPanel;
+    }
+
+    private void handleLogout() {
+        int result = JOptionPane.showConfirmDialog(
+            this,
+            "Are you sure you want to logout?",
+            "Confirm Logout",
+            JOptionPane.YES_NO_OPTION
+        );
+
+        if (result == JOptionPane.YES_OPTION) {
+            SwingUtilities.invokeLater(() -> {
+                SchoolLoginUI loginFrame = new SchoolLoginUI();
+                loginFrame.setVisible(true);
+            });
+            // Close the current frame
+            JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(this);
+            if (topFrame != null) topFrame.dispose();
+        }
     }
     
     private JPanel createOptionCard(String title) {

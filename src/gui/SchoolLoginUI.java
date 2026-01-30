@@ -4,6 +4,9 @@ import javax.swing.*;
 import java.awt.*;
 
 public class SchoolLoginUI extends JFrame {
+    private JTextField usernameField;
+    private JPasswordField passwordField;
+
     public SchoolLoginUI() {
         setTitle("School Login");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -44,7 +47,7 @@ public class SchoolLoginUI extends JFrame {
         
         // Profile avatar from filepath
         JLabel avatarLabel = new JLabel();
-        ImageIcon avatar = new ImageIcon("C:\\Users\\M\\OneDrive\\Documents\\Year2\\Introduction to Software Engineering\\project\\Attendance-Dashboard\\src\\gui\\Logo.jpg");
+        ImageIcon avatar = new ImageIcon("C:\\Users\\M\\Kimter-GitPull\\Attendance-Dashboard\\src\\gui\\Logo.jpg");
         Image scaledImage = avatar.getImage().getScaledInstance(50, 50, Image.SCALE_SMOOTH);
         avatarLabel.setIcon(new ImageIcon(scaledImage));
         avatarLabel.setBounds(125, 15, 50, 50);
@@ -74,6 +77,8 @@ public class SchoolLoginUI extends JFrame {
         cardPanel.add(idField);
         
         // Username label
+        // Username text field - assign to class field
+        usernameField = new JTextField();
         JLabel usernameLabel = new JLabel("Username");
         usernameLabel.setFont(new Font("Arial", Font.PLAIN, 12));
         usernameLabel.setForeground(new Color(100, 100, 100));
@@ -81,7 +86,8 @@ public class SchoolLoginUI extends JFrame {
         cardPanel.add(usernameLabel);
         
         // Username text field
-        JTextField usernameField = new JTextField();
+        // Username text field - assign to class field
+        usernameField = new JTextField();
         usernameField.setBounds(20, 195, 260, 35);
         usernameField.setFont(new Font("Arial", Font.PLAIN, 12));
         usernameField.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200)));
@@ -95,40 +101,69 @@ public class SchoolLoginUI extends JFrame {
         cardPanel.add(passwordLabel);
         
         // Password field
-        JPasswordField passwordField = new JPasswordField();
+        // Password field - assign to class field
+        passwordField = new JPasswordField();
         passwordField.setBounds(20, 260, 260, 35);
         passwordField.setFont(new Font("Arial", Font.PLAIN, 12));
         passwordField.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200)));
         cardPanel.add(passwordField);
         
-        // Log In button
-        JButton loginButton = new JButton("Log In");
+       // Log In button - using JLabel
+        JLabel loginButton = new JLabel("Log In") {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setColor(new Color(168, 126, 79));
+                g2d.fillRect(0, 0, getWidth(), getHeight());
+                super.paintComponent(g);
+            }
+        };
         loginButton.setBounds(175, 310, 105, 40);
         loginButton.setFont(new Font("Arial", Font.BOLD, 13));
-        loginButton.setBackground(new Color(168, 126, 79));
         loginButton.setForeground(Color.WHITE);
-        loginButton.setBorder(BorderFactory.createLineBorder(new Color(168, 126, 79)));
-        loginButton.setFocusPainted(false);
+        loginButton.setHorizontalAlignment(SwingConstants.CENTER);
+        loginButton.setVerticalAlignment(SwingConstants.CENTER);
         loginButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        loginButton.addActionListener(e -> handleLogin());
-        cardPanel.add(loginButton);
-        
+        loginButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                handleLogin();
+            }
+        });
+cardPanel.add(loginButton);
+                
         mainPanel.add(cardPanel);
         add(mainPanel);
     }
     
     private void handleLogin() {
-        this.dispose();
-        SwingUtilities.invokeLater(() -> {
-            SchoolHomeUI homeFrame = new SchoolHomeUI();
-            homeFrame.setVisible(true);
-        });
-    }
-    
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            SchoolLoginUI frame = new SchoolLoginUI();
-            frame.setVisible(true);
-        });
+        String username = usernameField.getText().trim().toLowerCase();
+        String password = new String(passwordField.getPassword());
+        
+        if (username.isEmpty() || password.isEmpty()) {
+            JOptionPane.showMessageDialog(this, 
+                "Please enter both username and password", 
+                "Login Error", 
+                JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        if (username.equals("student")) {
+            this.dispose();
+            SwingUtilities.invokeLater(() -> {
+                SchoolHomeUI homeFrame = new SchoolHomeUI();
+                homeFrame.setVisible(true);
+            });
+        } else if (username.equals("teacher")) {
+            this.dispose();
+            SwingUtilities.invokeLater(() -> {
+                MainFrame mainFrame = new MainFrame();
+                mainFrame.setVisible(true);
+            });
+        } else {
+            JOptionPane.showMessageDialog(this, 
+                "Invalid username. Use 'student' or 'teacher'.", 
+                "Login Error", 
+                JOptionPane.ERROR_MESSAGE);
+        }
     }
 }

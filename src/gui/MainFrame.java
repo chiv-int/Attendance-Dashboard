@@ -12,7 +12,6 @@ public class MainFrame extends JFrame {
     private JPanel mainPanel;
     
     // View instances
-    private LoginView loginView;
     private TeacherDashboardView teacherDashboardView;
     private TeacherClassDetailView teacherClassDetailView;
     private TeacherAttendanceOptionView teacherAttendanceOptionView;
@@ -32,7 +31,6 @@ public class MainFrame extends JFrame {
         initializeViews();
         
         // Add all views to main panel
-        mainPanel.add(loginView, "LOGIN");
         mainPanel.add(teacherDashboardView, "TEACHER_DASHBOARD");
         mainPanel.add(teacherClassDetailView, "TEACHER_CLASS_DETAIL");
         mainPanel.add(teacherAttendanceOptionView, "TEACHER_ATTENDANCE_OPTION");
@@ -45,7 +43,6 @@ public class MainFrame extends JFrame {
     }
     
     private void initializeViews() {
-        loginView = new LoginView(this);
         teacherDashboardView = new TeacherDashboardView(this);
         teacherClassDetailView = new TeacherClassDetailView(this);
         teacherAttendanceOptionView = new TeacherAttendanceOptionView(this);
@@ -66,10 +63,12 @@ public class MainFrame extends JFrame {
         if ("TEACHER".equals(userType)) {
             showView("TEACHER_DASHBOARD");
         } else if ("STUDENT".equals(userType)) {
-            // For your teammate to implement
-            JOptionPane.showMessageDialog(this, 
-                "Student view not yet implemented.\nYour teammate will add this feature.",
-                "Info", JOptionPane.INFORMATION_MESSAGE);
+            // Navigate to student home
+            this.dispose();
+            SwingUtilities.invokeLater(() -> {
+                SchoolHomeUI homeFrame = new SchoolHomeUI();
+                homeFrame.setVisible(true);
+            });
         }
     }
     
@@ -124,8 +123,8 @@ public class MainFrame extends JFrame {
                 }
 
                 // Create main window
-                MainFrame frame = new MainFrame();
-                frame.setVisible(true);
+                SchoolLoginUI loginFrame = new SchoolLoginUI();
+                loginFrame.setVisible(true);
             } catch (Throwable t) {
                 // Show user-friendly error and exit
                 t.printStackTrace();
