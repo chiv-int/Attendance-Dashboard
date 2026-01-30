@@ -157,7 +157,8 @@ cardPanel.add(loginButton);
             this.dispose();
             SwingUtilities.invokeLater(() -> {
                 MainFrame mainFrame = new MainFrame();
-                mainFrame.setVisible(true);
+                mainFrame.handleLoginSuccess("TEACHER");  
+                mainFrame.setVisible(true);  
             });
         } else {
             JOptionPane.showMessageDialog(this, 
