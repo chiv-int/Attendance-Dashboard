@@ -10,10 +10,10 @@ public class Student extends User {
     private final List<String> enrolledCourseIds;
     
     public Student(String userId, String username, String password,
-                   String fullName, String email, String phone, int year) {
-        super(userId, username, password, fullName, email, phone);
-        this.studentId = userId;
-        this.program = "Computer Science"; // Default program
+                   String fullName, String studentId, String program, int year) {
+        super(userId, username, password, fullName, "", "");
+        this.studentId = studentId;
+        this.program = program;
         this.year = year;
         this.enrolledCourseIds = new ArrayList<>();
     }

@@ -16,14 +16,28 @@ public class AttendanceDashboard {
     private final AttendanceManager attendanceManager;
     private final Scanner scanner;
     private User currentUser;
+    private dao.AttendanceCodeDao attendanceCodeDao;
+    private dao.AttendanceDao attendanceDao;
 
     public AttendanceDashboard() {
         this.users = new HashMap<>();
         this.students = new HashMap<>();
         this.teachers = new HashMap<>();
         this.courses = new HashMap<>();
-        this.attendanceManager = new AttendanceManager("attendance123"); // Default attendance password
+        this.attendanceManager = new AttendanceManager("attendance123");
         this.scanner = new Scanner(System.in);
+        
+        // Initialize database DAOs
+        try {
+            this.attendanceCodeDao = new dao.AttendanceCodeDao();
+            this.attendanceDao = new dao.AttendanceDao();
+            System.out.println("✓ Database connection initialized");
+        } catch (Exception e) {
+            System.err.println("✗ Database connection failed: " + e.getMessage());
+            this.attendanceCodeDao = null;
+            this.attendanceDao = null;
+        }
+        
         initializeData();
     }
 
@@ -46,8 +60,9 @@ public class AttendanceDashboard {
         Teacher teacher1 = new Teacher("U003", "teacher1", "pass123",
                 "Dr. Sarah Williams", "T001",
                 "Computer Science", "Data Structures");
+        teacher1.setTeacherId("T001");  // Set the actual teacher ID
 
-        teachers.put(teacher1.getEmployeeId(), teacher1);
+        teachers.put(teacher1.getTeacherId(), teacher1);
         users.put(teacher1.getUsername(), teacher1);
 
         // Create courses
@@ -66,11 +81,15 @@ public class AttendanceDashboard {
         course1.enrollStudent(student1.getStudentId());
         course1.enrollStudent(student2.getStudentId());
         course2.enrollStudent(student1.getStudentId());
+        course2.enrollStudent(student2.getStudentId());
+        course3.enrollStudent(student1.getStudentId());
         course3.enrollStudent(student2.getStudentId());
 
         student1.enrollCourse("C001");
         student1.enrollCourse("C002");
+        student1.enrollCourse("C003");
         student2.enrollCourse("C001");
+        student2.enrollCourse("C002");
         student2.enrollCourse("C003");
 
         // Assign courses to teacher
@@ -109,13 +128,10 @@ public class AttendanceDashboard {
                 LocalDateTime.now().plusDays(5), 25, 45));
 
         // Mark some sample attendance (for student1 only)
-        attendanceManager.markAttendance("L001", "S001",
+        attendanceManager.markAttendance("C001", "S001",
                 AttendanceRecord.AttendanceStatus.PRESENT,
                 "T001", "attendance123");
-        attendanceManager.markAttendance("L002", "S001",
-                AttendanceRecord.AttendanceStatus.PRESENT,
-                "T001", "attendance123");
-        attendanceManager.markAttendance("L004", "S001",
+        attendanceManager.markAttendance("C002", "S001",
                 AttendanceRecord.AttendanceStatus.PRESENT,
                 "T001", "attendance123");
     }
@@ -386,98 +402,117 @@ public class AttendanceDashboard {
     /**
      * Display attendance options and allow marking attendance
      */
-    private void displayAttendanceOptions(Course course, Student student) {
-        while (true) {
-            System.out.println("\n╔══════════════════════════════════════════════════╗");
-            System.out.println("║              ATTENDANCE MANAGEMENT               ║");
-            System.out.println("╚══════════════════════════════════════════════════╝");
-
-            double attendanceRate = attendanceManager.calculateAttendancePercentage(
-                    student.getStudentId(), course.getLessons());
-            System.out.printf("\nYour Attendance Rate: %.1f%%\n", attendanceRate);
-
-            List<Lesson> lessons = course.getLessons();
-            if (lessons.isEmpty()) {
-                System.out.println("\nNo lessons available yet.");
-                return;
-            }
-
-            System.out.println("\nLessons:");
-            for (int i = 0; i < lessons.size(); i++) {
-                Lesson lesson = lessons.get(i);
-                AttendanceRecord record = attendanceManager.findAttendanceRecord(
-                        lesson.getLessonId(), student.getStudentId());
-
-                String status = record != null ?
-                        "✓ " + record.getStatus() : "⊗ Not marked";
-
-                System.out.printf("%d. %s - %s\n", i + 1, lesson, status);
-            }
-
-            System.out.println("\nOptions:");
-            System.out.println("M. Mark attendance for a lesson");
-            System.out.println("0. Back");
-
-            System.out.print("\nYour choice: ");
-            String choice = scanner.nextLine().trim().toUpperCase();
-
-            if (choice.equals("0")) {
-                return;
-            } else if (choice.equals("M")) {
-                markAttendanceForLesson(lessons, student);
-            } else {
-                System.out.println("Invalid choice!");
+/**
+ * Display attendance options and allow marking attendance
+ */
+private void displayAttendanceOptions(Course course, Student student) {
+    while (true) {
+        // Load attendance code from database if not set in memory
+        if (course.getAttendanceStartTime() == null && attendanceCodeDao != null) {
+            try {
+                dao.AttendanceCodeDao.AttendanceCodeRecord codeRecord = 
+                    attendanceCodeDao.getActiveCodeForCourse(course.getCourseId());
+                
+                if (codeRecord != null) {
+                    course.setPassword(codeRecord.getPassword());
+                    course.setAttendanceDateTime(codeRecord.getAttendanceDate().toString());
+                    course.setAttendanceStartTime(codeRecord.getStartTime().toString());
+                    course.setAttendanceEndTime(codeRecord.getEndTime().toString());
+                    
+                    // DEBUG: Show loaded password
+                    System.out.println("✓ Loaded password from database: " + codeRecord.getPassword());
+                    System.out.println("[DEBUG] Course object ID: " + System.identityHashCode(course));
+                    System.out.println("[DEBUG] Course password after load: " + course.getPassword());
+                }
+            } catch (Exception e) {
+                System.err.println("⚠ Warning: Could not load attendance code from database");
+                e.printStackTrace();
             }
         }
-    }
-
-    /**
-     * Mark attendance for a specific lesson
-     */
-    private void markAttendanceForLesson(List<Lesson> lessons, Student student) {
+        
         System.out.println("\n╔══════════════════════════════════════════════════╗");
-        System.out.println("║              MARK ATTENDANCE                     ║");
+        System.out.println("║              ATTENDANCE MANAGEMENT               ║");
         System.out.println("╚══════════════════════════════════════════════════╝");
 
-        for (int i = 0; i < lessons.size(); i++) {
-            System.out.printf("%d. %s\n", i + 1, lessons.get(i).getTitle());
-        }
+        double attendanceRate = attendanceManager.calculateAttendancePercentage(
+                student.getStudentId(), course.getLessons());
+        System.out.printf("\nYour Attendance Rate: %.1f%%\n", attendanceRate);
 
-        System.out.print("\nSelect lesson number: ");
-        int lessonChoice;
-        try {
-            lessonChoice = Integer.parseInt(scanner.nextLine().trim());
-        } catch (NumberFormatException e) {
-            System.out.println("Invalid input!");
+        System.out.println("\nAttendance Window Status:");
+        String windowStatus = course.getAttendanceStartTime() != null ? 
+            "Date: " + course.getAttendanceDateTime() + " | Time: " + course.getAttendanceStartTime() + " - " + course.getAttendanceEndTime() :
+            "No attendance code generated yet";
+        System.out.println(windowStatus);
+
+        System.out.println("\nOptions:");
+        System.out.println("M. Mark attendance for this course");
+        System.out.println("0. Back");
+
+        System.out.print("\nYour choice: ");
+        String choice = scanner.nextLine().trim().toUpperCase();
+
+        if (choice.equals("0")) {
             return;
-        }
-
-        if (lessonChoice < 1 || lessonChoice > lessons.size()) {
-            System.out.println("Invalid lesson selection!");
-            return;
-        }
-
-        Lesson selectedLesson = lessons.get(lessonChoice - 1);
-
-        System.out.print("\nEnter attendance password: ");
-        String password = scanner.nextLine().trim();
-
-        System.out.println("\nIMPORTANT: Default attendance password is 'attendance123'");
-
-        boolean success = attendanceManager.markAttendance(
-                selectedLesson.getLessonId(),
-                student.getStudentId(),
-                AttendanceRecord.AttendanceStatus.PRESENT,
-                currentUser.getUserId(),
-                password
-        );
-
-        if (success) {
-            System.out.println("✓ You have been marked PRESENT for: " + selectedLesson.getTitle());
+        } else if (choice.equals("M")) {
+            // Check if attendance code has been generated
+            if (course.getAttendanceStartTime() == null || course.getAttendanceEndTime() == null) {
+                System.out.println("\n✗ Teacher has not generated an attendance code yet.");
+                System.out.println("Please wait for the teacher to generate the attendance code.");
+            } else {
+                // Mark attendance for the course
+                markAttendanceForCourse(course, student);
+            }
+        } else {
+            System.out.println("Invalid choice!");
         }
     }
+}
 
-    /**
+/**
+ * Mark attendance for a course (simplified - no lesson selection)
+ */
+private void markAttendanceForCourse(Course course, Student student) {
+    System.out.println("\n╔══════════════════════════════════════════════════╗");
+    System.out.println("║              MARK ATTENDANCE                     ║");
+    System.out.println("╚══════════════════════════════════════════════════╝");
+
+    System.out.println("\nCourse: " + course.getCourseCode() + " - " + course.getCourseName());
+    System.out.println("Date: " + course.getAttendanceDateTime());
+    System.out.println("Time Window: " + course.getAttendanceStartTime() + " - " + course.getAttendanceEndTime());
+    
+    // DEBUG: Show what student data we have
+    System.out.println("[DEBUG] Student object: " + student);
+    System.out.println("[DEBUG] Student ID: " + student.getStudentId());
+    System.out.println("[DEBUG] CurrentUser ID: " + currentUser.getUserId());
+    System.out.println("[DEBUG] CurrentUser full name: " + currentUser.getFullName());
+    
+    // Check if current time is within attendance window - MUST be within window
+    if (!isWithinAttendanceWindow(course)) {
+        System.out.println("\nPress Enter to continue...");
+        scanner.nextLine();
+        return;
+    }
+
+    System.out.print("\nEnter attendance password: ");
+    String password = scanner.nextLine().trim();
+
+    // Mark attendance for the course
+    boolean success = attendanceManager.markAttendance(
+            course.getCourseId(),
+            student.getStudentId(),
+            AttendanceRecord.AttendanceStatus.PRESENT,
+            currentUser.getUserId(),
+            attendanceManager.getAttendancePassword()
+    );
+
+    if (success) {
+        System.out.println("\n✓ Attendance marked successfully for " + course.getCourseName());
+        System.out.println("✓ Date: " + course.getAttendanceDateTime());
+    } else {
+        System.out.println("\n✗ Failed to mark attendance. You may have already marked attendance.");
+    }
+}
+/**
      * Display lessons for a course
      */
     private void displayLessons(Course course) {
@@ -533,7 +568,7 @@ public class AttendanceDashboard {
      * Teacher dashboard - display teaching courses
      */
     private void teacherDashboard() {
-        Teacher teacher = teachers.get(((Teacher) currentUser).getEmployeeId());
+        Teacher teacher = teachers.get(((Teacher) currentUser).getTeacherId());
 
         while (true) {
             System.out.println("\n╔══════════════════════════════════════════════════╗");
@@ -592,8 +627,59 @@ public class AttendanceDashboard {
             System.out.println("Enrolled Students: " + course.getEnrolledStudentCount());
 
             System.out.println("\nOptions:");
-            System.out.println("1. View Students");
+            System.out.println("1. Attendance");
             System.out.println("2. View Lessons");
+            System.out.println("3. View Exercises");
+            System.out.println("4. Quiz");
+            System.out.println("0. Back");
+
+            System.out.print("\nYour choice: ");
+            int choice;
+            try {
+                choice = Integer.parseInt(scanner.nextLine().trim());
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid input!");
+                continue;
+            }
+
+            switch (choice) {
+                case 1:
+                    displayAttendanceMenu(course);
+                    break;
+                case 2:
+                    displayLessons(course);
+                    break;
+                case 3:
+                    System.out.println("\n╔══════════════════════════════════════════════════╗");
+                    System.out.println("║                 EXERCISES                        ║");
+                    System.out.println("╚══════════════════════════════════════════════════╝");
+                    System.out.println("\nExercises management coming soon!");
+                    System.out.println("\nPress Enter to continue...");
+                    scanner.nextLine();
+                    break;
+                case 4:
+                    displayQuizzes(course);
+                    break;
+                case 0:
+                    return;
+                default:
+                    System.out.println("Invalid choice!");
+            }
+        }
+    }
+
+    /**
+     * Display attendance submenu for teachers
+     */
+    private void displayAttendanceMenu(Course course) {
+        while (true) {
+            System.out.println("\n╔══════════════════════════════════════════════════╗");
+            System.out.println("║            ATTENDANCE TOOLS                      ║");
+            System.out.println("╚══════════════════════════════════════════════════╝");
+
+            System.out.println("\nOptions:");
+            System.out.println("1. Generate Code");
+            System.out.println("2. View Student");
             System.out.println("3. View Attendance Reports");
             System.out.println("0. Back");
 
@@ -608,12 +694,14 @@ public class AttendanceDashboard {
 
             switch (choice) {
                 case 1:
-                    displayEnrolledStudents(course);
+                    generateAttendanceCode(course);
                     break;
                 case 2:
-                    displayLessons(course);
+                    autoMarkAbsentIfTimeEnded(course);
+                    displayEnrolledStudents(course);
                     break;
                 case 3:
+                    autoMarkAbsentIfTimeEnded(course);
                     displayAttendanceReports(course);
                     break;
                 case 0:
@@ -622,6 +710,135 @@ public class AttendanceDashboard {
                     System.out.println("Invalid choice!");
             }
         }
+    }
+
+    /**
+     * Generate attendance code for a course with specific date and time
+     */
+    private void generateAttendanceCode(Course course) {
+        System.out.println("\n╔══════════════════════════════════════════════════╗");
+        System.out.println("║          GENERATE ATTENDANCE CODE                ║");
+        System.out.println("╚══════════════════════════════════════════════════╝");
+
+        String attendanceDate = "";
+        String startTime = "";
+        String endTime = "";
+        boolean validInput = false;
+
+        // Validate attendance date
+        while (!validInput) {
+            System.out.print("\nEnter attendance date (DD/MM/YYYY): ");
+            attendanceDate = scanner.nextLine().trim();
+            if (isValidDate(attendanceDate)) {
+                validInput = true;
+            } else {
+                System.out.println("✗ Invalid date format! Please enter date in DD/MM/YYYY format.");
+            }
+        }
+
+        // Validate start time
+        validInput = false;
+        while (!validInput) {
+            System.out.print("Enter start time (HH:MM): ");
+            startTime = scanner.nextLine().trim();
+            if (isValidTime(startTime)) {
+                validInput = true;
+            } else {
+                System.out.println("✗ Invalid time format! Please enter time in HH:MM format (00:00 - 23:59).");
+            }
+        }
+
+        // Validate end time
+        validInput = false;
+        while (!validInput) {
+            System.out.print("Enter end time (HH:MM): ");
+            endTime = scanner.nextLine().trim();
+            if (isValidTime(endTime)) {
+                validInput = true;
+            } else {
+                System.out.println("✗ Invalid time format! Please enter time in HH:MM format (00:00 - 23:59).");
+            }
+        }
+
+        String password = generateRandomPassword();
+        course.setPassword(password);
+        course.setAttendanceDateTime(attendanceDate);
+        course.setAttendanceStartTime(startTime);
+        course.setAttendanceEndTime(endTime);
+
+        // Save to database
+        if (attendanceCodeDao != null) {
+            try {
+                java.time.LocalDate date = java.time.LocalDate.parse(attendanceDate, 
+                    java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+                java.time.LocalTime start = java.time.LocalTime.parse(startTime);
+                java.time.LocalTime end = java.time.LocalTime.parse(endTime);
+                
+                // Get teacher ID for the current user
+                String teacherId = (currentUser instanceof Teacher) 
+                    ? ((Teacher)currentUser).getTeacherId() 
+                    : "T001"; // Default fallback
+                
+                dao.AttendanceCodeDao.AttendanceCodeRecord record = 
+                    new dao.AttendanceCodeDao.AttendanceCodeRecord(
+                        course.getCourseId(),
+                        password,
+                        generateQRCodeData(password),
+                        date,
+                        start,
+                        end,
+                        teacherId
+                    );
+                
+                boolean saved = attendanceCodeDao.saveAttendanceCode(record);
+                
+                System.out.println("\n✓ Attendance Code Generated Successfully!");
+                if (saved) {
+                    System.out.println("✓ Code saved to database successfully!");
+                } else {
+                    System.err.println("⚠ Warning: Code was not saved to database");
+                }
+            } catch (Exception e) {
+                System.out.println("\n✓ Attendance Code Generated Successfully!");
+                System.err.println("✗ ERROR: Could not save to database!");
+                System.err.println("Error details: " + e.getMessage());
+                e.printStackTrace();
+            }
+        } else {
+            System.out.println("\n✓ Attendance Code Generated Successfully!");
+            System.err.println("✗ Database connection is NULL");
+        }
+
+        System.out.println("\n*** ATTENDANCE DETAILS ***");
+        System.out.println("Date: " + attendanceDate);
+        System.out.println("Start Time: " + startTime);
+        System.out.println("End Time: " + endTime);
+        System.out.println("\n*** PASSWORD: " + password + " ***");
+        System.out.println("*** QR CODE DATA: " + generateQRCodeData(password) + " ***");
+        System.out.println("\nShare this code with students for attendance marking.");
+        System.out.println("Students can only mark attendance between " + startTime + " and " + endTime);
+
+        System.out.println("\nPress Enter to continue...");
+        scanner.nextLine();
+    }
+
+    /**
+     * Generate random password for attendance
+     */
+    private String generateRandomPassword() {
+        String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        StringBuilder password = new StringBuilder();
+        for (int i = 0; i < 6; i++) {
+            password.append(characters.charAt((int) (Math.random() * characters.length())));
+        }
+        return password.toString();
+    }
+
+    /**
+     * Generate QR code data
+     */
+    private String generateQRCodeData(String password) {
+        return "attendance:" + password;
     }
 
     /**
@@ -655,25 +872,302 @@ public class AttendanceDashboard {
      * Display attendance reports for all lessons
      */
     private void displayAttendanceReports(Course course) {
-        System.out.println("\n╔══════════════════════════════════════════════════╗");
-        System.out.println("║           ATTENDANCE REPORTS                     ║");
-        System.out.println("╚══════════════════════════════════════════════════╝");
-
-        List<Lesson> lessons = course.getLessons();
-        if (lessons.isEmpty()) {
-            System.out.println("\nNo lessons to report on yet.");
+        System.out.println("\n╔══════════════════════════════════════════════════════════════════════════════╗");
+        System.out.println("║                     ATTENDANCE REPORT                                       ║");
+        System.out.println("╚══════════════════════════════════════════════════════════════════════════════╝");
+        
+        System.out.println("\nCourse: " + course.getCourseCode() + " - " + course.getCourseName());
+        System.out.println("Date: " + course.getAttendanceDateTime());
+        System.out.println("Time Window: " + course.getAttendanceStartTime() + " - " + course.getAttendanceEndTime());
+        
+        List<String> enrolledStudentIds = course.getEnrolledStudentIds();
+        
+        if (enrolledStudentIds.isEmpty()) {
+            System.out.println("\n⚠ No students enrolled in this course.");
             System.out.println("\nPress Enter to continue...");
             scanner.nextLine();
             return;
         }
-
-        for (Lesson lesson : lessons) {
-            attendanceManager.displayLessonAttendanceSummary(lesson.getLessonId(), course);
+        
+        // Create table header
+        System.out.println("\n" + "═".repeat(88));
+        System.out.printf("%-3s | %-20s | %-12s | %-15s | %-12s | %-15s\n", 
+            "No.", "Student Name", "Student ID", "Status", "Marked By", "Time");
+        System.out.println("═".repeat(88));
+        
+        int count = 1;
+        int presentCount = 0;
+        int lateCount = 0;
+        int absentCount = 0;
+        int excusedCount = 0;
+        
+        // Display each student's attendance
+        for (String studentId : enrolledStudentIds) {
+            Student student = students.get(studentId);
+            if (student != null) {
+                // Get attendance record for this student
+                AttendanceRecord record = attendanceManager.findAttendanceRecord(
+                    course.getCourseId(), studentId);
+                
+                String status = "ABSENT";
+                String markedBy = "-";
+                String time = "-";
+                
+                if (record != null) {
+                    status = record.getStatus().toString();
+                    markedBy = record.getMarkedBy();
+                    time = record.getFormattedTimestamp().split(" ")[1]; // Extract time only
+                    
+                    // Count statuses
+                    switch (record.getStatus()) {
+                        case PRESENT:
+                            presentCount++;
+                            break;
+                        case LATE:
+                            lateCount++;
+                            break;
+                        case ABSENT:
+                            absentCount++;
+                            break;
+                        case EXCUSED:
+                            excusedCount++;
+                            break;
+                    }
+                } else {
+                    absentCount++;
+                }
+                
+                // Format status with emoji
+                String statusDisplay = formatStatusWithEmoji(status);
+                
+                System.out.printf("%-3d | %-20s | %-12s | %-15s | %-12s | %-15s\n",
+                    count++,
+                    student.getFullName().length() > 20 ? student.getFullName().substring(0, 17) + "..." : student.getFullName(),
+                    studentId,
+                    statusDisplay,
+                    markedBy,
+                    time);
+            }
         }
-
+        
+        System.out.println("═".repeat(88));
+        
+        // Display summary statistics
+        System.out.println("\n📊 ATTENDANCE SUMMARY:");
+        System.out.println("  ✓ Present: " + presentCount);
+        System.out.println("  ⏰ Late: " + lateCount);
+        System.out.println("  ✗ Absent: " + absentCount);
+        System.out.println("  ⓘ Excused: " + excusedCount);
+        System.out.println("  Total: " + enrolledStudentIds.size());
+        
+        double attendanceRate = ((presentCount + lateCount + excusedCount) * 100.0) / enrolledStudentIds.size();
+        System.out.printf("  Attendance Rate: %.1f%%\n", attendanceRate);
+        
         System.out.println("\nPress Enter to continue...");
         scanner.nextLine();
     }
+    
+    /**
+     * Format status with emoji
+     */
+    private String formatStatusWithEmoji(String status) {
+        switch (status) {
+            case "PRESENT":
+                return "✓ PRESENT";
+            case "LATE":
+                return "⏰ LATE";
+            case "ABSENT":
+                return "✗ ABSENT";
+            case "EXCUSED":
+                return "ⓘ EXCUSED";
+            default:
+                return status;
+        }
+    }
+        
+    /**
+     * Check if current time is within attendance window
+     */
+    private boolean isWithinAttendanceWindow(Course course) {
+        String startTime = course.getAttendanceStartTime();
+        String endTime = course.getAttendanceEndTime();
+        
+        if (startTime == null || endTime == null) {
+            System.out.println("⚠ No attendance time window set for this course.");
+            return false;
+        }
+
+        // Get current time
+        java.time.LocalTime currentTime = java.time.LocalTime.now();
+        java.time.LocalTime start = java.time.LocalTime.parse(startTime);
+        java.time.LocalTime end = java.time.LocalTime.parse(endTime);
+
+        if (currentTime.isBefore(start)) {
+            System.out.println("✗ Attendance window has not started yet. Available at: " + startTime);
+            return false;
+        }
+
+        if (currentTime.isAfter(end)) {
+            System.out.println("✗ Attendance window has ended. Was available until: " + endTime);
+            return false;
+        }
+
+        System.out.println("✓ Attendance window is open. Valid until: " + endTime);
+        return true;
+    }
+
+    /**
+     * Automatically mark absent students if attendance time has ended
+     */
+    private void autoMarkAbsentIfTimeEnded(Course course) {
+        String endTime = course.getAttendanceEndTime();
+        String startTime = course.getAttendanceStartTime();
+        
+        // No attendance window set, skip
+        if (endTime == null || startTime == null) {
+            return;
+        }
+
+        // Check if current time is after end time
+        java.time.LocalTime currentTime = java.time.LocalTime.now();
+        java.time.LocalTime end = java.time.LocalTime.parse(endTime);
+
+        // If time hasn't ended yet, don't mark absent
+        if (currentTime.isBefore(end) || currentTime.equals(end)) {
+            return;
+        }
+
+        List<String> enrolledStudents = course.getEnrolledStudentIds();
+        List<Lesson> lessons = course.getLessons();
+        
+        if (lessons.isEmpty()) {
+            return;
+        }
+
+        // Use the course ID for marking attendance
+        String courseId = course.getCourseId();
+        
+        int markedAbsent = 0;
+        
+        for (String studentId : enrolledStudents) {
+            // Check if student has already marked attendance
+            AttendanceRecord existingRecord = attendanceManager.findAttendanceRecord(
+                    courseId, studentId);
+            
+            if (existingRecord == null) {
+                // Student hasn't marked attendance, mark as ABSENT
+                attendanceManager.markAttendance(
+                        courseId,
+                        studentId,
+                        AttendanceRecord.AttendanceStatus.ABSENT,
+                        currentUser.getUserId(),
+                        course.getPassword()
+                );
+                markedAbsent++;
+            }
+        }
+
+        // Only show message if students were marked absent
+        if (markedAbsent > 0) {
+            System.out.println("\n⏰ Attendance window ended at " + endTime);
+            System.out.println("✓ Automatically marked " + markedAbsent + " student(s) as ABSENT");
+        }
+    }
+
+    /**
+     * Validate date format (DD/MM/YYYY) and ensure it's not in the future
+     */
+    private boolean isValidDate(String date) {
+        if (date == null || date.isEmpty()) {
+            return false;
+        }
+
+        // Check format: DD/MM/YYYY
+        if (!date.matches("\\d{2}/\\d{2}/\\d{4}")) {
+            return false;
+        }
+
+        String[] parts = date.split("/");
+        try {
+            int day = Integer.parseInt(parts[0]);
+            int month = Integer.parseInt(parts[1]);
+            int year = Integer.parseInt(parts[2]);
+
+            // Validate day
+            if (day < 1 || day > 31) {
+                return false;
+            }
+
+            // Validate month
+            if (month < 1 || month > 12) {
+                return false;
+            }
+
+            // Validate year (reasonable range)
+            if (year < 2000 || year > 2100) {
+                return false;
+            }
+
+            // Check days in month
+            int[] daysInMonth = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+
+            // Check for leap year
+            if (year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)) {
+                daysInMonth[1] = 29;
+            }
+
+            if (day > daysInMonth[month - 1]) {
+                return false;
+            }
+
+            // Check if date is in the future
+            LocalDateTime inputDate = LocalDateTime.of(year, month, day, 0, 0, 0);
+            LocalDateTime today = LocalDateTime.now();
+            if (inputDate.toLocalDate().isAfter(today.toLocalDate())) {
+                System.out.println("✗ Invalid date! Attendance date cannot be in the future.");
+                return false;
+            }
+
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
+    /**
+     * Validate time format (HH:MM)
+     */
+    private boolean isValidTime(String time) {
+        if (time == null || time.isEmpty()) {
+            return false;
+        }
+
+        // Check format: HH:MM
+        if (!time.matches("\\d{2}:\\d{2}")) {
+            return false;
+        }
+
+        String[] parts = time.split(":");
+        try {
+            int hour = Integer.parseInt(parts[0]);
+            int minute = Integer.parseInt(parts[1]);
+
+            // Validate hour (0-23)
+            if (hour < 0 || hour > 23) {
+                return false;
+            }
+
+            // Validate minute (0-59)
+            if (minute < 0 || minute > 59) {
+                return false;
+            }
+
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
     /**
      * Main method to run the application
      */

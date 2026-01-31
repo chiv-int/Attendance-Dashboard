@@ -1,5 +1,6 @@
 package models;
 
+import dao.AttendanceDao;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -11,15 +12,23 @@ import java.util.stream.Collectors;
  */
 public class AttendanceManager {
     private final Map<String, AttendanceRecord> attendanceRecords; // recordId -> AttendanceRecord
-    private final Map<String, List<String>> lessonAttendance; // lessonId -> List of recordIds
+    private final Map<String, List<String>> courseAttendance; // courseId -> List of recordIds
     private final String attendancePassword; // Password required to mark attendance
     private final String attendancePasswordHash;
+    private final AttendanceDao attendanceDao;
 
     public AttendanceManager(String attendancePassword) {
         this.attendanceRecords = new HashMap<>();
-        this.lessonAttendance = new HashMap<>();
+        this.courseAttendance = new HashMap<>();
         this.attendancePassword = attendancePassword;
         this.attendancePasswordHash = User.hashPassword(attendancePassword);
+        
+        // Initialize DAO
+        try {
+            this.attendanceDao = new AttendanceDao();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to initialize AttendanceDao: " + e.getMessage());
+        }
     }
 
     /**
@@ -30,41 +39,84 @@ public class AttendanceManager {
     }
 
     /**
-     * Mark attendance for a student in a specific lesson
+     * Mark attendance for a student in a specific course
+     * Validates that the password matches the specific course code
      */
-    public boolean markAttendance(String lessonId, String studentId,
+    public boolean markAttendance(String courseId, String studentId,
                                   AttendanceRecord.AttendanceStatus status,
                                   String markedBy, String password) {
-        // Verify password
-        if (!verifyAttendancePassword(password)) {
-            System.out.println(" Invalid attendance password!");
+        // Validate password against this specific course's attendance code
+        if (!validateCourseAttendanceCode(courseId, password)) {
+            System.out.println("✗ Invalid attendance code for this course!");
+            System.out.println("✗ The password you entered does not match this course's attendance code.");
             return false;
         }
 
         // Check if attendance already exists
-        AttendanceRecord existing = findAttendanceRecord(lessonId, studentId);
+        AttendanceRecord existing = findAttendanceRecord(courseId, studentId);
         if (existing != null) {
             existing.setStatus(status);
-            System.out.println(" Attendance updated successfully!");
+            // Get the code_id for this course
+            Integer codeId = getAttendanceCodeIdForCourse(courseId, password);
+            // Save updated record to database
+            if (attendanceDao != null) {
+                attendanceDao.saveAttendanceRecord(existing, codeId);
+            }
+            System.out.println("✓ Attendance updated successfully!");
             return true;
         }
 
         // Create new attendance record
         String recordId = "ATT-" + System.currentTimeMillis();
-        AttendanceRecord record = new AttendanceRecord(recordId, lessonId, studentId, status, markedBy);
+        AttendanceRecord record = new AttendanceRecord(recordId, courseId, studentId, status, markedBy);
 
         attendanceRecords.put(recordId, record);
-        lessonAttendance.computeIfAbsent(lessonId, k -> new ArrayList<>()).add(recordId);
+        courseAttendance.computeIfAbsent(courseId, k -> new ArrayList<>()).add(recordId);
+        
+        // Get the code_id for this course and save with it
+        Integer codeId = getAttendanceCodeIdForCourse(courseId, password);
+        
+        // Save record to database with code_id
+        if (attendanceDao != null) {
+            attendanceDao.saveAttendanceRecord(record, codeId);
+        }
 
         System.out.println("✓ Attendance marked successfully!");
         return true;
     }
 
     /**
-     * Find attendance record for a specific student in a lesson
+     * Validate that password matches the specific course's attendance code
      */
-    public AttendanceRecord findAttendanceRecord(String lessonId, String studentId) {
-        List<String> recordIds = lessonAttendance.get(lessonId);
+    private boolean validateCourseAttendanceCode(String courseId, String password) {
+        try {
+            // Query attendance_codes table to find code for this course
+            dao.AttendanceCodeDao codeDao = new dao.AttendanceCodeDao();
+            return codeDao.validateAttendanceCode(courseId, password);
+        } catch (Exception e) {
+            System.err.println("Error validating attendance code: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Get the code_id for a specific course and password
+     */
+    private Integer getAttendanceCodeIdForCourse(String courseId, String password) {
+        try {
+            dao.AttendanceCodeDao codeDao = new dao.AttendanceCodeDao();
+            return codeDao.getCodeIdByCourseAndPassword(courseId, password);
+        } catch (Exception e) {
+            System.err.println("Error getting code_id: " + e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Find attendance record for a specific student in a course
+     */
+    public AttendanceRecord findAttendanceRecord(String courseId, String studentId) {
+        List<String> recordIds = courseAttendance.get(courseId);
         if (recordIds == null) {
             return null;
         }
@@ -79,17 +131,17 @@ public class AttendanceManager {
     }
 
     /**
-     * Get all attendance records for a lesson
+     * Get all attendance records for a course
      */
-    public List<AttendanceRecord> getLessonAttendance(String lessonId) {
-        List<String> recordIds = lessonAttendance.getOrDefault(lessonId, new ArrayList<>());
+    public List<AttendanceRecord> getCourseAttendance(String courseId) {
+        List<String> recordIds = courseAttendance.getOrDefault(courseId, new ArrayList<>());
         return recordIds.stream()
                 .map(attendanceRecords::get)
                 .collect(Collectors.toList());
     }
 
     /**
-     * Get all attendance records for a student across all lessons
+     * Get all attendance records for a student across all courses
      */
     public List<AttendanceRecord> getStudentAttendance(String studentId) {
         return attendanceRecords.values().stream()
@@ -116,13 +168,13 @@ public class AttendanceManager {
     }
 
     /**
-     * Display attendance summary for a lesson
+     * Display attendance summary for a course
      */
-    public void displayLessonAttendanceSummary(String lessonId, Course course) {
-        List<AttendanceRecord> records = getLessonAttendance(lessonId);
+    public void displayCourseAttendanceSummary(String courseId, Course course) {
+        List<AttendanceRecord> records = getCourseAttendance(courseId);
 
         System.out.println("\n╔════════════════════════════════════════════╗");
-        System.out.println("║      ATTENDANCE SUMMARY FOR LESSON         ║");
+        System.out.println("║      ATTENDANCE SUMMARY FOR COURSE         ║");
         System.out.println("╚════════════════════════════════════════════╝");
 
         long presentCount = records.stream()

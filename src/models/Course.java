@@ -10,9 +10,12 @@ public class Course {
     private final String courseCode;
     private String courseName;
     private final String teacherId;
-    private final String schedule;
+    private String schedule;
     private final int credits;
     private String password;
+    private String attendanceDateTime;
+    private String attendanceStartTime;
+    private String attendanceEndTime;
     private final List<String> enrolledStudentIds;
     private final List<AttendanceRecord> attendanceRecords;
     private final List<Lesson> lessons;
@@ -72,6 +75,10 @@ public class Course {
         return schedule;
     }
     
+    public void setSchedule(String schedule) {
+        this.schedule = schedule;
+    }
+    
     public int getCredits() {
         return credits;
     }
@@ -82,6 +89,30 @@ public class Course {
     
     public String getPassword() {
         return password;
+    }
+    
+    public void setAttendanceDateTime(String attendanceDateTime) {
+        this.attendanceDateTime = attendanceDateTime;
+    }
+    
+    public String getAttendanceDateTime() {
+        return attendanceDateTime;
+    }
+    
+    public void setAttendanceStartTime(String attendanceStartTime) {
+        this.attendanceStartTime = attendanceStartTime;
+    }
+    
+    public String getAttendanceStartTime() {
+        return attendanceStartTime;
+    }
+    
+    public void setAttendanceEndTime(String attendanceEndTime) {
+        this.attendanceEndTime = attendanceEndTime;
+    }
+    
+    public String getAttendanceEndTime() {
+        return attendanceEndTime;
     }
     
     public boolean verifyPassword(String inputPassword) {
