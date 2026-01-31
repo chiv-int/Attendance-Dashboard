@@ -127,13 +127,7 @@ public class AttendanceDashboard {
                 "Fundamentals of machine learning",
                 LocalDateTime.now().plusDays(5), 25, 45));
 
-        // Mark some sample attendance (for student1 only)
-        attendanceManager.markAttendance("C001", "S001",
-                AttendanceRecord.AttendanceStatus.PRESENT,
-                "T001", "attendance123");
-        attendanceManager.markAttendance("C002", "S001",
-                AttendanceRecord.AttendanceStatus.PRESENT,
-                "T001", "attendance123");
+        // Sample attendance marking removed - now using teacher-generated codes
     }
 
     /**
@@ -174,7 +168,6 @@ public class AttendanceDashboard {
         System.out.println("Total Students: " + students.size());
         System.out.println("Total Teachers: " + teachers.size());
         System.out.println("Total Courses: " + courses.size());
-        System.out.println("Attendance Password: " + attendanceManager.getAttendancePassword());
         System.out.println();
     }
 
@@ -199,7 +192,7 @@ public class AttendanceDashboard {
         System.out.println("  Name: Mr. Tal Tongsreng");
         System.out.println("  Teaching: CS301, CS402, CS205");
         System.out.println();
-        System.out.println("ATTENDANCE PASSWORD: attendance123");
+        System.out.println("Note: Teachers generate attendance codes for each session.");
         System.out.println();
     }
 
@@ -476,7 +469,7 @@ private void markAttendanceForCourse(Course course, Student student) {
     System.out.println("║              MARK ATTENDANCE                     ║");
     System.out.println("╚══════════════════════════════════════════════════╝");
 
-    System.out.println("\nCourse: " + course.getCourseCode() + " - " + course.getCourseName());
+    System.out.println("\nCourse: " + course.getCourseId() + " - " + course.getCourseName());
     System.out.println("Date: " + course.getAttendanceDateTime());
     System.out.println("Time Window: " + course.getAttendanceStartTime() + " - " + course.getAttendanceEndTime());
     
@@ -496,13 +489,13 @@ private void markAttendanceForCourse(Course course, Student student) {
     System.out.print("\nEnter attendance password: ");
     String password = scanner.nextLine().trim();
 
-    // Mark attendance for the course
+    // Mark attendance for the course using the password entered by student
     boolean success = attendanceManager.markAttendance(
             course.getCourseId(),
             student.getStudentId(),
             AttendanceRecord.AttendanceStatus.PRESENT,
             currentUser.getUserId(),
-            attendanceManager.getAttendancePassword()
+            password  // Use the password entered by the student
     );
 
     if (success) {
@@ -876,9 +869,25 @@ private void markAttendanceForCourse(Course course, Student student) {
         System.out.println("║                     ATTENDANCE REPORT                                       ║");
         System.out.println("╚══════════════════════════════════════════════════════════════════════════════╝");
         
+        // Fetch attendance code information from database
+        String attendanceDate = "Not set";
+        String startTime = "Not set";
+        String endTime = "Not set";
+        
+        if (attendanceCodeDao != null) {
+            dao.AttendanceCodeDao.AttendanceCodeRecord activeCode = 
+                attendanceCodeDao.getActiveCodeForCourse(course.getCourseId());
+            
+            if (activeCode != null) {
+                attendanceDate = activeCode.getAttendanceDate().toString();
+                startTime = activeCode.getStartTime().toString();
+                endTime = activeCode.getEndTime().toString();
+            }
+        }
+        
         System.out.println("\nCourse: " + course.getCourseCode() + " - " + course.getCourseName());
-        System.out.println("Date: " + course.getAttendanceDateTime());
-        System.out.println("Time Window: " + course.getAttendanceStartTime() + " - " + course.getAttendanceEndTime());
+        System.out.println("Date: " + attendanceDate);
+        System.out.println("Time Window: " + startTime + " - " + endTime);
         
         List<String> enrolledStudentIds = course.getEnrolledStudentIds();
         
@@ -905,9 +914,16 @@ private void markAttendanceForCourse(Course course, Student student) {
         for (String studentId : enrolledStudentIds) {
             Student student = students.get(studentId);
             if (student != null) {
-                // Get attendance record for this student
-                AttendanceRecord record = attendanceManager.findAttendanceRecord(
-                    course.getCourseId(), studentId);
+                // Get attendance record from DATABASE, not just in-memory
+                AttendanceRecord record = null;
+                if (attendanceDao != null) {
+                    record = attendanceDao.getAttendanceRecord(course.getCourseId(), studentId);
+                }
+                
+                // Fallback to in-memory if database query fails
+                if (record == null) {
+                    record = attendanceManager.findAttendanceRecord(course.getCourseId(), studentId);
+                }
                 
                 String status = "ABSENT";
                 String markedBy = "-";
@@ -1071,6 +1087,17 @@ private void markAttendanceForCourse(Course course, Student student) {
         if (markedAbsent > 0) {
             System.out.println("\n⏰ Attendance window ended at " + endTime);
             System.out.println("✓ Automatically marked " + markedAbsent + " student(s) as ABSENT");
+        }
+        
+        // Deactivate the attendance code since the time window has ended
+        if (attendanceCodeDao != null && course.getPassword() != null) {
+            Integer codeId = attendanceCodeDao.getCodeIdByCourseAndPassword(courseId, course.getPassword());
+            if (codeId != null) {
+                boolean deactivated = attendanceCodeDao.deactivateCode(codeId);
+                if (deactivated) {
+                    System.out.println("✓ Attendance code deactivated (time window ended)");
+                }
+            }
         }
     }
 

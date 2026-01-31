@@ -155,22 +155,36 @@ public class AttendanceCodeDao {
     }
 
     /**
-     * Validate attendance code (check password and time window)
+     * Validate attendance code (check password only, time window checked separately)
      */
     public boolean validateAttendanceCode(String courseId, String password) {
-        AttendanceCodeRecord code = getActiveCodeForCourse(courseId);
-        
-        if (code == null || !code.getPassword().equals(password)) {
+        if (connection == null) {
+            System.err.println("[DEBUG] Connection is NULL!");
             return false;
         }
         
-        // Check if current time is within the window
-        LocalTime now = LocalTime.now();
-        LocalDate today = LocalDate.now();
+        // Trim the input password to remove any whitespace
+        password = password.trim();
         
-        return code.getAttendanceDate().equals(today) &&
-               !now.isBefore(code.getStartTime()) &&
-               !now.isAfter(code.getEndTime());
+        String sql = "SELECT * FROM attendance_codes WHERE course_id = ? AND TRIM(password) = ? AND is_active = 1 LIMIT 1";
+        
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, courseId);
+            stmt.setString(2, password);
+            
+            System.out.println("[DEBUG] Validating - CourseID: '" + courseId + "', Password: '" + password + "'");
+            System.out.println("[DEBUG] Password length: " + password.length());
+            
+            try (ResultSet rs = stmt.executeQuery()) {
+                boolean found = rs.next();
+                System.out.println("[DEBUG] Validation result: " + (found ? "FOUND" : "NOT FOUND"));
+                return found;
+            }
+        } catch (SQLException e) {
+            System.err.println("✗ Error validating attendance code: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return false;
     }
 
     /**
@@ -289,7 +303,7 @@ public class AttendanceCodeDao {
      * Get the code_id for a specific course and password
      */
     public Integer getCodeIdByCourseAndPassword(String courseId, String password) {
-        String sql = "SELECT code_id FROM attendance_codes WHERE course_id = ? AND password = ? AND is_active = TRUE LIMIT 1";
+        String sql = "SELECT code_id FROM attendance_codes WHERE course_id = ? AND password = ? AND is_active = 1 LIMIT 1";
         
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, courseId);

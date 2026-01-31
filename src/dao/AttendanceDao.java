@@ -23,7 +23,7 @@ public class AttendanceDao {
     public boolean saveAttendanceRecord(AttendanceRecord record, Integer codeId) {
         String sql = "INSERT INTO attendance_records (course_id, student_id, status, marked_by, notes, code_id) " +
                     "VALUES (?, ?, ?, ?, ?, ?) " +
-                    "ON DUPLICATE KEY UPDATE status = ?, marked_by = ?, notes = ?, code_id = ?";
+                    "ON DUPLICATE KEY UPDATE status = ?, marked_by = ?, notes = ?, code_id = ?, marked_at = CURRENT_TIMESTAMP";
         
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             String courseId = record.getCourseId();
