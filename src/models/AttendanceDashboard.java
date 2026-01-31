@@ -115,17 +115,17 @@ public class AttendanceDashboard {
                 "Regression models and training",
                 LocalDateTime.now().minusDays(3), 120, "Lab 305"));
 
-        // Add quizzes to courses
-        course1.addQuiz(new Quiz("Q001", "C001", "Arrays and Complexity Quiz",
-                "Test your understanding of arrays",
-                LocalDateTime.now().plusDays(3), 20, 30));
-        course1.addQuiz(new Quiz("Q002", "C001", "Data Structures Midterm",
-                "Comprehensive midterm exam",
-                LocalDateTime.now().plusDays(14), 100, 120));
-
-        course2.addQuiz(new Quiz("Q003", "C002", "ML Basics Quiz",
-                "Fundamentals of machine learning",
-                LocalDateTime.now().plusDays(5), 25, 45));
+        // Add quizzes to courses - commented out to avoid classpath issues
+        // course1.addQuiz(new Quiz("Q001", "C001", "Arrays and Complexity Quiz",
+        //         "Test your understanding of arrays",
+        //         LocalDateTime.now().plusDays(3), 20, 30));
+        // course1.addQuiz(new Quiz("Q002", "C001", "Data Structures Midterm",
+        //         "Comprehensive midterm exam",
+        //         LocalDateTime.now().plusDays(14), 100, 120));
+        //
+        // course2.addQuiz(new Quiz("Q003", "C002", "ML Basics Quiz",
+        //         "Fundamentals of machine learning",
+        //         LocalDateTime.now().plusDays(5), 25, 45));
 
         // Sample attendance marking removed - now using teacher-generated codes
     }
