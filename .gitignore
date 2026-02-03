@@ -1,2 +1,12 @@
+# Ignore all compiled Java class files
 *.class
+
+# Ignore the build folders where IDEs store compiled code
 bin/
+out/
+build/
+
+# Ignore IDE-specific settings
+.idea/
+.vscode/
+*.iml
