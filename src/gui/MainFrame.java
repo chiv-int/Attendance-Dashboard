@@ -39,7 +39,7 @@ public class MainFrame extends JFrame {
         add(mainPanel);
         
         // Show login view first
-        showView("LOGIN");
+        showView("TEACHER_DASHBOARD");
     }
     
     private void initializeViews() {
