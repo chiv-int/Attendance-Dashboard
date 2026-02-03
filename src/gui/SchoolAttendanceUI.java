@@ -24,24 +24,29 @@ public class SchoolAttendanceUI extends JFrame {
         
         setTitle("The Valley University - " + courseName + " > Attendance");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(1200, 700);
+        
+        // Set fullscreen
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
+        GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+        DisplayMode displayMode = gd.getDisplayMode();
+        setSize(displayMode.getWidth(), displayMode.getHeight());
         setLocationRelativeTo(null);
         setResizable(true);
 
-        // Main panel
+        // Main panel with BorderLayout (responsive!)
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BorderLayout());
         mainPanel.setBackground(new Color(245, 245, 245));
 
-        // Header
+        // Header (fixed height, responsive width)
         JPanel headerPanel = createHeader();
         mainPanel.add(headerPanel, BorderLayout.NORTH);
 
-        // Content area
+        // Content area (fills remaining space)
         JPanel contentPanel = createContent();
         mainPanel.add(contentPanel, BorderLayout.CENTER);
 
-        // Footer
+        // Footer (fixed height, responsive width)
         JPanel footerPanel = createFooter();
         mainPanel.add(footerPanel, BorderLayout.SOUTH);
 
@@ -55,69 +60,81 @@ public class SchoolAttendanceUI extends JFrame {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g;
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
                 GradientPaint gradient = new GradientPaint(0, 0, new Color(26, 26, 26), getWidth(), 0, new Color(45, 45, 45));
                 g2d.setPaint(gradient);
                 g2d.fillRect(0, 0, getWidth(), getHeight());
             }
         };
-        headerPanel.setLayout(null);
-        headerPanel.setPreferredSize(new Dimension(0, 70));
+        headerPanel.setLayout(new BorderLayout(15, 0));
+        headerPanel.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
 
-        // Logo
+        // Left: Logo + School name
+        JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        leftPanel.setOpaque(false);
+
         JLabel logoLabel = new JLabel();
-        ImageIcon logoIcon = new ImageIcon("C:\\Users\\M\\OneDrive\\Documents\\Year2\\Introduction to Software Engineering\\project\\Attendance-Dashboard\\src\\gui\\Logo.jpg");
-        Image scaledLogo = logoIcon.getImage().getScaledInstance(40, 40, Image.SCALE_SMOOTH);
-        logoLabel.setIcon(new ImageIcon(scaledLogo));
-        logoLabel.setBounds(20, 15, 40, 40);
-        headerPanel.add(logoLabel);
+        try {
+            ImageIcon logoIcon = new ImageIcon("C:\\Users\\M\\OneDrive\\Documents\\Year2\\Introduction to Software Engineering\\project\\Attendance-Dashboard\\src\\gui\\Logo.jpg");
+            Image scaledLogo = logoIcon.getImage().getScaledInstance(40, 40, Image.SCALE_SMOOTH);
+            logoLabel.setIcon(new ImageIcon(scaledLogo));
+        } catch (Exception e) {
+            logoLabel.setText("🏫");
+            logoLabel.setFont(new Font("Arial", Font.PLAIN, 24));
+            logoLabel.setForeground(Color.WHITE);
+        }
+        leftPanel.add(logoLabel);
 
-        // School name
         JLabel schoolNameLabel = new JLabel("The Valley University");
         schoolNameLabel.setFont(new Font("Arial", Font.BOLD, 16));
         schoolNameLabel.setForeground(Color.WHITE);
-        schoolNameLabel.setBounds(70, 15, 250, 40);
-        headerPanel.add(schoolNameLabel);
+        leftPanel.add(schoolNameLabel);
 
-        // Navigation
+        headerPanel.add(leftPanel, BorderLayout.WEST);
+
+        // Center: Navigation
+        JPanel navPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 40, 0));
+        navPanel.setOpaque(false);
+
         homeLabel = createNavButton("Home", false);
-        homeLabel.setBounds(480, 15, 80, 40);
-        headerPanel.add(homeLabel);
+        navPanel.add(homeLabel);
 
         courseLabel = createNavButton("Course", true);
-        courseLabel.setBounds(580, 15, 80, 40);
-        headerPanel.add(courseLabel);
+        navPanel.add(courseLabel);
 
-        // User info panel
-        JPanel userPanel = new JPanel();
-        userPanel.setLayout(null);
-        userPanel.setOpaque(false);
-        userPanel.setBounds(getWidth() - 250, 10, 240, 50);
+        headerPanel.add(navPanel, BorderLayout.CENTER);
+
+        // Right: User info + Logout
+        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 20, 0));
+        rightPanel.setOpaque(false);
+
+        JPanel userInfoPanel = new JPanel();
+        userInfoPanel.setLayout(new BoxLayout(userInfoPanel, BoxLayout.Y_AXIS));
+        userInfoPanel.setOpaque(false);
 
         JLabel userNameLabel = new JLabel("Student");
         userNameLabel.setFont(new Font("Arial", Font.BOLD, 12));
         userNameLabel.setForeground(Color.WHITE);
-        userNameLabel.setBounds(10, 5, 120, 20);
-        userPanel.add(userNameLabel);
+        userInfoPanel.add(userNameLabel);
 
         JLabel userRoleLabel = new JLabel("Student Account");
         userRoleLabel.setFont(new Font("Arial", Font.PLAIN, 10));
         userRoleLabel.setForeground(new Color(136, 136, 136));
-        userRoleLabel.setBounds(10, 25, 120, 15);
-        userPanel.add(userRoleLabel);
+        userInfoPanel.add(userRoleLabel);
+
+        rightPanel.add(userInfoPanel);
 
         JButton logoutBtn = new JButton("Logout");
-        logoutBtn.setBounds(140, 10, 90, 30);
         logoutBtn.setFont(new Font("Arial", Font.BOLD, 12));
         logoutBtn.setForeground(new Color(168, 126, 79));
         logoutBtn.setBackground(new Color(26, 26, 26));
         logoutBtn.setBorder(BorderFactory.createLineBorder(new Color(168, 126, 79), 1));
         logoutBtn.setFocusPainted(false);
         logoutBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        logoutBtn.setPreferredSize(new Dimension(90, 30));
         logoutBtn.addActionListener(e -> handleLogout());
-        userPanel.add(logoutBtn);
+        rightPanel.add(logoutBtn);
 
-        headerPanel.add(userPanel);
+        headerPanel.add(rightPanel, BorderLayout.EAST);
 
         return headerPanel;
     }
@@ -147,6 +164,7 @@ public class SchoolAttendanceUI extends JFrame {
         label.setFont(new Font("Arial", Font.BOLD, 13));
         label.setForeground(isActive ? new Color(168, 126, 79) : new Color(176, 176, 176));
         label.setHorizontalAlignment(SwingConstants.CENTER);
+        label.setPreferredSize(new Dimension(80, 40));
         label.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         label.addMouseListener(new MouseAdapter() {
@@ -199,84 +217,119 @@ public class SchoolAttendanceUI extends JFrame {
                 g2d.fillRect(0, 0, getWidth(), getHeight());
             }
         };
-        wrapperPanel.setLayout(null);
+        
+        // Use GridBagLayout for flexible, responsive layout
+        wrapperPanel.setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
 
-        // Course header breadcrumb
+        // Breadcrumb at top
         JLabel breadcrumb = new JLabel("> " + currentCourseName + " > Attendance");
         breadcrumb.setFont(new Font("Arial", Font.PLAIN, 16));
         breadcrumb.setForeground(new Color(200, 200, 200));
-        breadcrumb.setBounds(50, 30, 800, 40);
-        wrapperPanel.add(breadcrumb);
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.insets = new Insets(30, 50, 30, 50);
+        gbc.anchor = GridBagConstraints.NORTHWEST;
+        gbc.weightx = 1.0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        wrapperPanel.add(breadcrumb, gbc);
 
-        // Form card
+        // Form card - centered in remaining space
         JPanel formPanel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g;
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
                 g2d.setColor(new Color(245, 242, 233));
-                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
+                g2d.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 15, 15);
             }
         };
-        formPanel.setLayout(null);
+        
+        formPanel.setLayout(new GridBagLayout());
         formPanel.setOpaque(false);
-        formPanel.setBounds(200, 100, 800, 250);
 
-        // Password label
+        GridBagConstraints formGbc = new GridBagConstraints();
+        formGbc.insets = new Insets(30, 60, 30, 60);
+
+        // Password label and field
         JLabel passwordLabel = new JLabel("Password:");
         passwordLabel.setFont(new Font("Arial", Font.PLAIN, 14));
         passwordLabel.setForeground(new Color(60, 60, 60));
-        passwordLabel.setBounds(60, 50, 150, 30);
-        formPanel.add(passwordLabel);
+        formGbc.gridx = 0;
+        formGbc.gridy = 0;
+        formGbc.anchor = GridBagConstraints.EAST;
+        formPanel.add(passwordLabel, formGbc);
 
-        // Password field
         passwordField = new JPasswordField();
-        passwordField.setBounds(250, 50, 350, 35);
         passwordField.setFont(new Font("Arial", Font.PLAIN, 13));
         passwordField.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
-        formPanel.add(passwordField);
+        passwordField.setPreferredSize(new Dimension(350, 35));
+        formGbc.gridx = 1;
+        formGbc.anchor = GridBagConstraints.WEST;
+        formGbc.insets = new Insets(30, 20, 30, 60);
+        formPanel.add(passwordField, formGbc);
 
-        // Options label
+        // Options label and radio buttons
         JLabel optionsLabel = new JLabel("Options:");
         optionsLabel.setFont(new Font("Arial", Font.PLAIN, 14));
         optionsLabel.setForeground(new Color(60, 60, 60));
-        optionsLabel.setBounds(60, 130, 150, 30);
-        formPanel.add(optionsLabel);
+        formGbc.gridx = 0;
+        formGbc.gridy = 1;
+        formGbc.anchor = GridBagConstraints.EAST;
+        formGbc.insets = new Insets(30, 60, 30, 60);
+        formPanel.add(optionsLabel, formGbc);
 
-        // Radio buttons
+        JPanel radioPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 30, 0));
+        radioPanel.setOpaque(false);
+
         presentButton = new JRadioButton("Present");
-        presentButton.setBounds(250, 130, 100, 30);
         presentButton.setFont(new Font("Arial", Font.PLAIN, 13));
         presentButton.setOpaque(false);
         presentButton.setSelected(true);
-        formPanel.add(presentButton);
+        radioPanel.add(presentButton);
 
         lateButton = new JRadioButton("Late");
-        lateButton.setBounds(380, 130, 100, 30);
         lateButton.setFont(new Font("Arial", Font.PLAIN, 13));
         lateButton.setOpaque(false);
-        formPanel.add(lateButton);
+        radioPanel.add(lateButton);
 
-        // Button group
         ButtonGroup group = new ButtonGroup();
         group.add(presentButton);
         group.add(lateButton);
 
-        wrapperPanel.add(formPanel);
+        formGbc.gridx = 1;
+        formGbc.anchor = GridBagConstraints.WEST;
+        formGbc.insets = new Insets(30, 20, 30, 60);
+        formPanel.add(radioPanel, formGbc);
 
-        // Submit button
+        // Add form to wrapper with centering
+        gbc.gridy = 1;
+        gbc.weightx = 0;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.anchor = GridBagConstraints.CENTER;
+        gbc.insets = new Insets(0, 0, 0, 0);
+        wrapperPanel.add(formPanel, gbc);
+
+        // Submit button below form
         JButton submitBtn = new JButton("Submit");
-        submitBtn.setBounds(860, 360, 140, 50);
         submitBtn.setFont(new Font("Arial", Font.BOLD, 16));
         submitBtn.setBackground(new Color(168, 126, 79));
         submitBtn.setForeground(Color.WHITE);
         submitBtn.setBorder(BorderFactory.createLineBorder(new Color(168, 126, 79), 1));
         submitBtn.setFocusPainted(false);
         submitBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        submitBtn.setPreferredSize(new Dimension(140, 50));
         submitBtn.addActionListener(e -> handleSubmit());
-        wrapperPanel.add(submitBtn);
+
+        gbc.gridy = 2;
+        gbc.weightx = 1.0;
+        gbc.weighty = 0;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.anchor = GridBagConstraints.SOUTHEAST;
+        gbc.insets = new Insets(0, 0, 30, 50);
+        wrapperPanel.add(submitBtn, gbc);
 
         return wrapperPanel;
     }
@@ -290,12 +343,12 @@ public class SchoolAttendanceUI extends JFrame {
             return;
         }
 
-        // Show success message with custom dialog
+        // Show success dialog
         JDialog successDialog = new JDialog(this, "Success", true);
         successDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         successDialog.setSize(500, 300);
         successDialog.setLocationRelativeTo(this);
-        successDialog.setResizable(false);
+        successDialog.setUndecorated(true);
 
         JPanel dialogPanel = new JPanel() {
             @Override
@@ -306,10 +359,10 @@ public class SchoolAttendanceUI extends JFrame {
                 g2d.fillRect(0, 0, getWidth(), getHeight());
             }
         };
-        dialogPanel.setLayout(null);
+        dialogPanel.setLayout(new GridBagLayout());
         dialogPanel.setOpaque(false);
 
-        // Success message card
+        // Success card
         JPanel cardPanel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
@@ -317,31 +370,32 @@ public class SchoolAttendanceUI extends JFrame {
                 Graphics2D g2d = (Graphics2D) g;
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2d.setColor(new Color(245, 242, 233));
-                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
+                g2d.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 15, 15);
             }
         };
-        cardPanel.setLayout(null);
+        cardPanel.setLayout(new GridBagLayout());
         cardPanel.setOpaque(false);
-        cardPanel.setBounds(50, 80, 400, 100);
+        cardPanel.setPreferredSize(new Dimension(400, 100));
 
         JLabel successLabel = new JLabel("Submission sent!");
         successLabel.setFont(new Font("Arial", Font.BOLD, 24));
         successLabel.setForeground(new Color(60, 60, 60));
-        successLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        successLabel.setBounds(0, 25, 400, 60);
-        cardPanel.add(successLabel);
 
-        dialogPanel.add(cardPanel);
+        GridBagConstraints cardGbc = new GridBagConstraints();
+        cardPanel.add(successLabel, cardGbc);
 
-        // Continue label
+        GridBagConstraints mainGbc = new GridBagConstraints();
+        mainGbc.gridx = 0;
+        mainGbc.gridy = 0;
+        dialogPanel.add(cardPanel, mainGbc);
+
         JLabel continueLabel = new JLabel("Click anywhere to continue");
         continueLabel.setFont(new Font("Arial", Font.PLAIN, 12));
         continueLabel.setForeground(new Color(200, 200, 200));
-        continueLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        continueLabel.setBounds(0, 220, 500, 10);
-        dialogPanel.add(continueLabel);
+        mainGbc.gridy = 1;
+        mainGbc.insets = new Insets(50, 0, 0, 0);
+        dialogPanel.add(continueLabel, mainGbc);
 
-        // Add mouse listener to close dialog
         dialogPanel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -369,7 +423,6 @@ public class SchoolAttendanceUI extends JFrame {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g;
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
                 GradientPaint gradient = new GradientPaint(0, 0, new Color(26, 26, 26), getWidth(), getHeight(), new Color(45, 45, 45));
                 g2d.setPaint(gradient);
                 g2d.fillRect(0, 0, getWidth(), getHeight());
@@ -378,14 +431,13 @@ public class SchoolAttendanceUI extends JFrame {
                 g2d.drawLine(0, 0, getWidth(), 0);
             }
         };
-        footerPanel.setLayout(null);
-        footerPanel.setPreferredSize(new Dimension(0, 60));
+        footerPanel.setLayout(new BorderLayout());
 
         JLabel footerText = new JLabel("© 2024 The Valley University. All rights reserved. | Privacy Policy | Contact Support");
         footerText.setFont(new Font("Arial", Font.PLAIN, 12));
         footerText.setForeground(new Color(136, 136, 136));
-        footerText.setBounds(30, 15, getWidth() - 60, 30);
-        footerPanel.add(footerText);
+        footerText.setBorder(BorderFactory.createEmptyBorder(15, 30, 15, 30));
+        footerPanel.add(footerText, BorderLayout.WEST);
 
         return footerPanel;
     }
