@@ -2,6 +2,9 @@ package gui;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+
+import models.Course;
+
 import java.awt.*;
 import java.util.Random;
 
@@ -233,37 +236,194 @@ public class TeacherAttendanceOptionView extends JPanel {
         return card;
     }
     
+    // In TeacherAttendanceOptionView.java - Replace showGeneratePassword()
+
     private void showGeneratePassword() {
-        // Generate random 6-character password
-        String password = generateRandomPassword(6);
+        // Create dialog for date/time input
+        JDialog inputDialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), 
+                                        "Generate Attendance Code", true);
+        inputDialog.setLayout(new BorderLayout());
+        inputDialog.setSize(500, 400);
+        inputDialog.setLocationRelativeTo(this);
         
+        JPanel contentPanel = new JPanel(new GridBagLayout());
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        contentPanel.setBackground(new Color(245, 242, 233));
+        
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        
+        // Date input
+        JLabel dateLabel = new JLabel("Date (DD/MM/YYYY):");
+        dateLabel.setFont(new Font("SansSerif", Font.BOLD, 14));
+        contentPanel.add(dateLabel, gbc);
+        
+        gbc.gridy++;
+        JTextField dateField = new JTextField(java.time.LocalDate.now()
+                .format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+        dateField.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        dateField.setPreferredSize(new Dimension(200, 35));
+        contentPanel.add(dateField, gbc);
+        
+        // Start time input
+        gbc.gridy++;
+        JLabel startLabel = new JLabel("Start Time (HH:MM):");
+        startLabel.setFont(new Font("SansSerif", Font.BOLD, 14));
+        contentPanel.add(startLabel, gbc);
+        
+        gbc.gridy++;
+        JTextField startField = new JTextField("09:00");
+        startField.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        startField.setPreferredSize(new Dimension(200, 35));
+        contentPanel.add(startField, gbc);
+        
+        // End time input
+        gbc.gridy++;
+        JLabel endLabel = new JLabel("End Time (HH:MM):");
+        endLabel.setFont(new Font("SansSerif", Font.BOLD, 14));
+        contentPanel.add(endLabel, gbc);
+        
+        gbc.gridy++;
+        JTextField endField = new JTextField("10:00");
+        endField.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        endField.setPreferredSize(new Dimension(200, 35));
+        contentPanel.add(endField, gbc);
+        
+        // Buttons
+        gbc.gridy++;
+        gbc.insets = new Insets(20, 10, 10, 10);
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
+        buttonPanel.setBackground(new Color(245, 242, 233));
+        
+        JButton generateBtn = new JButton("Generate");
+        generateBtn.setFont(new Font("SansSerif", Font.BOLD, 14));
+        generateBtn.setBackground(new Color(198, 174, 92));
+        generateBtn.setForeground(Color.BLACK);
+        generateBtn.setFocusPainted(false);
+        generateBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        generateBtn.setPreferredSize(new Dimension(120, 40));
+        
+        generateBtn.addActionListener(e -> {
+            String date = dateField.getText().trim();
+            String startTime = startField.getText().trim();
+            String endTime = endField.getText().trim();
+            
+            // Validate inputs
+            if (!isValidDate(date)) {
+                JOptionPane.showMessageDialog(inputDialog, 
+                    "Invalid date format. Use DD/MM/YYYY", 
+                    "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            if (!isValidTime(startTime) || !isValidTime(endTime)) {
+                JOptionPane.showMessageDialog(inputDialog, 
+                    "Invalid time format. Use HH:MM (00:00 - 23:59)", 
+                    "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            // Get course from backend
+            BackendManager backend = BackendManager.getInstance();
+            Course course = backend.getCourseByName(currentCourseName);
+            
+            if (course == null) {
+                JOptionPane.showMessageDialog(inputDialog, 
+                    "Course not found", 
+                    "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            // Generate code via backend
+            String password = backend.generateAttendanceCode(
+                course.getCourseId(), date, startTime, endTime
+            );
+            
+            inputDialog.dispose();
+            
+            // Show success with generated code
+            showGeneratedCode(password, date, startTime, endTime);
+        });
+        
+        JButton cancelBtn = new JButton("Cancel");
+        cancelBtn.setFont(new Font("SansSerif", Font.BOLD, 14));
+        cancelBtn.setBackground(new Color(190, 190, 190));
+        cancelBtn.setForeground(Color.BLACK);
+        cancelBtn.setFocusPainted(false);
+        cancelBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        cancelBtn.setPreferredSize(new Dimension(100, 40));
+        cancelBtn.addActionListener(e -> inputDialog.dispose());
+        
+        buttonPanel.add(generateBtn);
+        buttonPanel.add(cancelBtn);
+        contentPanel.add(buttonPanel, gbc);
+        
+        inputDialog.add(contentPanel);
+        inputDialog.setVisible(true);
+    }
+
+    private void showGeneratedCode(String password, String date, String startTime, String endTime) {
         JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBackground(new Color(245, 242, 233));
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.insets = new Insets(10, 10, 10, 10);
         
-        JLabel messageLabel = new JLabel("Generated Attendance Password:");
-        messageLabel.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        JLabel messageLabel = new JLabel("Attendance Code Generated!");
+        messageLabel.setFont(new Font("SansSerif", Font.BOLD, 18));
         panel.add(messageLabel, gbc);
         
         gbc.gridy++;
         JTextField passwordField = new JTextField(password);
-        passwordField.setFont(new Font("SansSerif", Font.BOLD, 24));
+        passwordField.setFont(new Font("SansSerif", Font.BOLD, 32));
         passwordField.setHorizontalAlignment(JTextField.CENTER);
         passwordField.setEditable(false);
-        passwordField.setPreferredSize(new Dimension(200, 50));
+        passwordField.setPreferredSize(new Dimension(250, 60));
         passwordField.setBackground(new Color(232, 240, 254));
         panel.add(passwordField, gbc);
         
         gbc.gridy++;
-        JLabel instructionLabel = new JLabel("Share this password with students to mark attendance");
-        instructionLabel.setFont(new Font("SansSerif", Font.PLAIN, 12));
-        instructionLabel.setForeground(new Color(120, 120, 120));
-        panel.add(instructionLabel, gbc);
+        JLabel detailsLabel = new JLabel(String.format(
+            "<html><center>Date: %s<br>Time: %s - %s</center></html>", 
+            date, startTime, endTime
+        ));
+        detailsLabel.setFont(new Font("SansSerif", Font.PLAIN, 12));
+        detailsLabel.setForeground(new Color(100, 100, 100));
+        panel.add(detailsLabel, gbc);
         
-        JOptionPane.showMessageDialog(this, panel, "Attendance Password", 
-                                      JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(this, panel, "Success", 
+                                    JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private boolean isValidDate(String date) {
+        if (!date.matches("\\d{2}/\\d{2}/\\d{4}")) return false;
+        try {
+            String[] parts = date.split("/");
+            int day = Integer.parseInt(parts[0]);
+            int month = Integer.parseInt(parts[1]);
+            int year = Integer.parseInt(parts[2]);
+            return day >= 1 && day <= 31 && month >= 1 && month <= 12 && 
+                year >= 2000 && year <= 2100;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private boolean isValidTime(String time) {
+        if (!time.matches("\\d{2}:\\d{2}")) return false;
+        try {
+            String[] parts = time.split(":");
+            int hour = Integer.parseInt(parts[0]);
+            int minute = Integer.parseInt(parts[1]);
+            return hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59;
+        } catch (Exception e) {
+            return false;
+        }
     }
     
     private String generateRandomPassword(int length) {

@@ -4,12 +4,19 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
+
+import models.AttendanceRecord;
+import models.Course;
+import models.Student;
+
 import java.awt.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * TeacherListView - Shows attendance list with search and filter functionality
@@ -20,71 +27,71 @@ public class TeacherListView extends JPanel {
     private JLabel titleLabel;
     private String currentCourseCode;
     private String currentCourseName;
-    
+
     private JTable attendanceTable;
     private DefaultTableModel tableModel;
     private JTextField searchField;
     private TableRowSorter<DefaultTableModel> sorter;
-    
+
     // Filter state
     private boolean filterPresent = true;
     private boolean filterAbsent = true;
     private String dateFilterType = "All Time"; // "All Time", "Yesterday", "This Week", "This Month", "Custom"
     private LocalDate customStartDate = null;
     private LocalDate customEndDate = null;
-    
+
     // Active filters panel
     private JPanel activeFiltersPanel;
-    
+
     public TeacherListView(MainFrame mainFrame) {
         this.mainFrame = mainFrame;
         setLayout(new BorderLayout());
         setBackground(new Color(45, 52, 54)); // Dark background
-        
+
         initComponents();
     }
-    
+
     private void initComponents() {
         // Header with navigation
         JPanel headerPanel = createHeader();
         add(headerPanel, BorderLayout.NORTH);
-        
+
         // Main content
         JPanel contentPanel = new JPanel(new BorderLayout());
         contentPanel.setBackground(new Color(67, 79, 84)); // Medium dark gray
         contentPanel.setBorder(new EmptyBorder(30, 60, 30, 60));
-        
+
         // Title
         titleLabel = new JLabel("> Class > Attendance > Attendance List");
         titleLabel.setFont(new Font("SansSerif", Font.BOLD, 20));
         titleLabel.setForeground(Color.WHITE);
         contentPanel.add(titleLabel, BorderLayout.NORTH);
-        
+
         // Search and table panel
         JPanel mainPanel = new JPanel(new BorderLayout());
         mainPanel.setOpaque(false);
         mainPanel.setBorder(new EmptyBorder(20, 0, 0, 0));
-        
+
         // Search panel
         JPanel searchPanel = createSearchPanel();
         mainPanel.add(searchPanel, BorderLayout.NORTH);
-        
+
         // Active filters panel
         activeFiltersPanel = createActiveFiltersPanel();
         mainPanel.add(activeFiltersPanel, BorderLayout.CENTER);
-        
+
         // Table panel
         JPanel tablePanel = createTablePanel();
         JPanel tableWrapper = new JPanel(new BorderLayout());
         tableWrapper.setOpaque(false);
         tableWrapper.add(tablePanel, BorderLayout.CENTER);
         mainPanel.add(tableWrapper, BorderLayout.SOUTH);
-        
+
         contentPanel.add(mainPanel, BorderLayout.CENTER);
-        
+
         add(contentPanel, BorderLayout.CENTER);
     }
-    
+
     private JPanel createHeader() {
         JPanel headerPanel = new JPanel() {
             @Override
@@ -106,7 +113,7 @@ public class TeacherListView extends JPanel {
         // Left section: Logo and school name
         JPanel leftSection = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
         leftSection.setOpaque(false);
-        
+
         // Logo
         JLabel logoLabel = new JLabel();
         try {
@@ -123,13 +130,13 @@ public class TeacherListView extends JPanel {
         schoolNameLabel.setFont(new Font("Arial", Font.BOLD, 16));
         schoolNameLabel.setForeground(Color.WHITE);
         leftSection.add(schoolNameLabel);
-        
+
         headerPanel.add(leftSection, BorderLayout.WEST);
 
         // Center section: Navigation
         JPanel centerSection = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
         centerSection.setOpaque(false);
-        
+
         // Navigation - Home button
         JLabel homeButton = new JLabel("Home");
         homeButton.setFont(new Font("Arial", Font.BOLD, 13));
@@ -157,18 +164,18 @@ public class TeacherListView extends JPanel {
         classesButton.setForeground(new Color(150, 150, 150)); // Grayed out
         classesButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         centerSection.add(classesButton);
-        
+
         headerPanel.add(centerSection, BorderLayout.CENTER);
 
         // Right section: User info panel
         JPanel rightSection = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 0));
         rightSection.setOpaque(false);
-        
+
         // User info container
         JPanel userInfoPanel = new JPanel();
         userInfoPanel.setLayout(new BoxLayout(userInfoPanel, BoxLayout.Y_AXIS));
         userInfoPanel.setOpaque(false);
-        
+
         JLabel userNameLabel = new JLabel("Teacher");
         userNameLabel.setFont(new Font("Arial", Font.BOLD, 12));
         userNameLabel.setForeground(Color.WHITE);
@@ -180,7 +187,7 @@ public class TeacherListView extends JPanel {
         userRoleLabel.setForeground(new Color(136, 136, 136));
         userRoleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         userInfoPanel.add(userRoleLabel);
-        
+
         rightSection.add(userInfoPanel);
 
         // Logout button
@@ -202,10 +209,10 @@ public class TeacherListView extends JPanel {
 
     private void handleLogout() {
         int result = JOptionPane.showConfirmDialog(
-            this,
-            "Are you sure you want to logout?",
-            "Confirm Logout",
-            JOptionPane.YES_NO_OPTION
+                this,
+                "Are you sure you want to logout?",
+                "Confirm Logout",
+                JOptionPane.YES_NO_OPTION
         );
 
         if (result == JOptionPane.YES_OPTION) {
@@ -218,11 +225,11 @@ public class TeacherListView extends JPanel {
             if (topFrame != null) topFrame.dispose();
         }
     }
-    
+
     private JPanel createSearchPanel() {
         JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 10));
         searchPanel.setOpaque(false);
-        
+
         // Search field
         searchField = new JTextField(35);
         searchField.setFont(new Font("SansSerif", Font.PLAIN, 14));
@@ -230,10 +237,10 @@ public class TeacherListView extends JPanel {
         searchField.setForeground(new Color(100, 100, 100));
         searchField.setText("Search student name or ID");
         searchField.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(200, 190, 175), 1),
-            new EmptyBorder(10, 12, 10, 12)
+                BorderFactory.createLineBorder(new Color(200, 190, 175), 1),
+                new EmptyBorder(10, 12, 10, 12)
         ));
-        
+
         searchField.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusGained(java.awt.event.FocusEvent e) {
                 if (searchField.getText().equals("Search student name or ID")) {
@@ -248,7 +255,7 @@ public class TeacherListView extends JPanel {
                 }
             }
         });
-        
+
         searchField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
             public void changedUpdate(javax.swing.event.DocumentEvent e) {
                 filterTable();
@@ -260,9 +267,9 @@ public class TeacherListView extends JPanel {
                 filterTable();
             }
         });
-        
+
         searchPanel.add(searchField);
-        
+
         // Filter button (yellow-gold color)
         JButton filterButton = new JButton("Filter");
         filterButton.setFont(new Font("SansSerif", Font.BOLD, 14));
@@ -274,27 +281,24 @@ public class TeacherListView extends JPanel {
         filterButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         filterButton.addActionListener(e -> showFilterDialog());
         searchPanel.add(filterButton);
-        
+
         return searchPanel;
     }
-    
+
     private JPanel createActiveFiltersPanel() {
         JPanel panel = new JPanel();
         panel.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 5));
         panel.setOpaque(false);
         panel.setPreferredSize(new Dimension(0, 50));
-        
-        // Don't call updateActiveFiltersDisplay() here - activeFiltersPanel not assigned yet!
-        // The panel starts empty, which is correct for initial state (no filters active)
-        
+
         return panel;
     }
-    
+
     private void updateActiveFiltersDisplay() {
         activeFiltersPanel.removeAll();
-        
+
         List<String> activeFilters = new ArrayList<>();
-        
+
         // Check date filter
         if (!dateFilterType.equals("All Time")) {
             String dateText = dateFilterType;
@@ -304,46 +308,46 @@ public class TeacherListView extends JPanel {
             }
             activeFilters.add("Date: " + dateText);
         }
-        
+
         // Check status filter
         if (filterPresent && !filterAbsent) {
             activeFilters.add("Status: Present");
         } else if (!filterPresent && filterAbsent) {
             activeFilters.add("Status: Absent");
         }
-        
+
         if (!activeFilters.isEmpty()) {
             JLabel filterLabel = new JLabel("Active Filters:");
             filterLabel.setFont(new Font("SansSerif", Font.BOLD, 13));
             filterLabel.setForeground(new Color(218, 209, 193));
             activeFiltersPanel.add(filterLabel);
-            
+
             for (String filter : activeFilters) {
                 activeFiltersPanel.add(createFilterChip(filter));
             }
-            
+
             // Clear all button
             JButton clearAllBtn = createClearAllButton();
             activeFiltersPanel.add(clearAllBtn);
         }
-        
+
         activeFiltersPanel.revalidate();
         activeFiltersPanel.repaint();
     }
-    
+
     private JPanel createFilterChip(String text) {
         JPanel chip = new JPanel(new BorderLayout(8, 0));
         chip.setBackground(new Color(198, 174, 92, 200)); // Semi-transparent yellow-gold
         chip.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(198, 174, 92), 1),
-            new EmptyBorder(5, 12, 5, 8)
+                BorderFactory.createLineBorder(new Color(198, 174, 92), 1),
+                new EmptyBorder(5, 12, 5, 8)
         ));
-        
+
         JLabel label = new JLabel(text);
         label.setFont(new Font("SansSerif", Font.PLAIN, 12));
         label.setForeground(Color.BLACK);
         chip.add(label, BorderLayout.CENTER);
-        
+
         // Close button
         JLabel closeBtn = new JLabel("✕");
         closeBtn.setFont(new Font("SansSerif", Font.BOLD, 14));
@@ -364,10 +368,10 @@ public class TeacherListView extends JPanel {
             }
         });
         chip.add(closeBtn, BorderLayout.EAST);
-        
+
         return chip;
     }
-    
+
     private JButton createClearAllButton() {
         JButton btn = new JButton("Clear All");
         btn.setFont(new Font("SansSerif", Font.PLAIN, 11));
@@ -379,7 +383,7 @@ public class TeacherListView extends JPanel {
         btn.addActionListener(e -> clearAllFilters());
         return btn;
     }
-    
+
     private void removeFilter(String filterText) {
         if (filterText.startsWith("Date:")) {
             dateFilterType = "All Time";
@@ -392,7 +396,7 @@ public class TeacherListView extends JPanel {
         updateActiveFiltersDisplay();
         applyAllFilters();
     }
-    
+
     private void clearAllFilters() {
         dateFilterType = "All Time";
         customStartDate = null;
@@ -402,12 +406,12 @@ public class TeacherListView extends JPanel {
         updateActiveFiltersDisplay();
         applyAllFilters();
     }
-    
+
     private JPanel createTablePanel() {
         JPanel tablePanel = new JPanel(new BorderLayout());
         tablePanel.setOpaque(false);
         tablePanel.setBorder(new EmptyBorder(10, 0, 0, 0));
-        
+
         // Create table with beige background
         String[] columnNames = {"No.", "Name", "Major", "Date", "Status"};
         tableModel = new DefaultTableModel(columnNames, 0) {
@@ -416,10 +420,7 @@ public class TeacherListView extends JPanel {
                 return false;
             }
         };
-        
-        // Add sample data
-        addSampleData();
-        
+
         attendanceTable = new JTable(tableModel);
         attendanceTable.setFont(new Font("SansSerif", Font.PLAIN, 13));
         attendanceTable.setRowHeight(40);
@@ -429,29 +430,29 @@ public class TeacherListView extends JPanel {
         attendanceTable.setShowGrid(true);
         attendanceTable.setSelectionBackground(new Color(210, 201, 185));
         attendanceTable.setSelectionForeground(Color.BLACK);
-        
+
         // Table header
         attendanceTable.getTableHeader().setFont(new Font("SansSerif", Font.BOLD, 13));
         attendanceTable.getTableHeader().setBackground(new Color(218, 209, 193));
         attendanceTable.getTableHeader().setForeground(Color.BLACK);
         attendanceTable.getTableHeader().setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.BLACK));
-        
+
         // Set column widths
         attendanceTable.getColumnModel().getColumn(0).setPreferredWidth(50);  // No.
         attendanceTable.getColumnModel().getColumn(1).setPreferredWidth(200); // Name
         attendanceTable.getColumnModel().getColumn(2).setPreferredWidth(150); // Major
         attendanceTable.getColumnModel().getColumn(3).setPreferredWidth(120); // Date
         attendanceTable.getColumnModel().getColumn(4).setPreferredWidth(100); // Status
-        
+
         // Add table sorter
         sorter = new TableRowSorter<>(tableModel);
         attendanceTable.setRowSorter(sorter);
-        
+
         // Wrap in scroll pane
         JScrollPane scrollPane = new JScrollPane(attendanceTable);
         scrollPane.setBorder(BorderFactory.createLineBorder(new Color(100, 100, 100), 1));
         scrollPane.getViewport().setBackground(new Color(218, 209, 193));
-        
+
         // "Student list" label above table
         JLabel listLabel = new JLabel("Student list");
         listLabel.setFont(new Font("SansSerif", Font.PLAIN, 13));
@@ -459,35 +460,60 @@ public class TeacherListView extends JPanel {
         listLabel.setBackground(new Color(218, 209, 193));
         listLabel.setOpaque(true);
         listLabel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createMatteBorder(1, 1, 0, 1, new Color(100, 100, 100)),
-            new EmptyBorder(8, 10, 8, 10)
+                BorderFactory.createMatteBorder(1, 1, 0, 1, new Color(100, 100, 100)),
+                new EmptyBorder(8, 10, 8, 10)
         ));
-        
+
         tablePanel.add(listLabel, BorderLayout.NORTH);
         tablePanel.add(scrollPane, BorderLayout.CENTER);
-        
+
         return tablePanel;
     }
-    
-    private void addSampleData() {
-        Object[][] sampleData = {
-            {1, "Chiv Intera", "Software Engineering", "2025-01-31", "Present"},
-            {2, "Song Phengroth", "Software Engineering", "2025-01-30", "Present"},
-            {3, "John Smith", "Computer Science", "2025-01-30", "Absent"},
-            {4, "Emma Wilson", "Software Engineering", "2025-01-29", "Present"},
-            {5, "Michael Brown", "Computer Science", "2025-01-29", "Present"},
-            {6, "Sarah Davis", "Information Systems", "2025-01-28", "Absent"},
-            {7, "David Miller", "Software Engineering", "2025-01-27", "Present"},
-            {8, "Lisa Anderson", "Computer Science", "2025-01-24", "Present"},
-            {9, "James Taylor", "Software Engineering", "2025-01-20", "Present"},
-            {10, "Emily White", "Information Systems", "2025-01-15", "Absent"}
-        };
-        
-        for (Object[] row : sampleData) {
+
+    private void loadRealAttendanceData() {
+        // Clear existing data
+        tableModel.setRowCount(0);
+
+        BackendManager backend = BackendManager.getInstance();
+        Course course = backend.getCourseByName(currentCourseName);
+
+        if (course == null) {
+            System.err.println("Course not found: " + currentCourseName);
+            return;
+        }
+
+        List<String> enrolledStudents = course.getEnrolledStudentIds();
+        int rowNumber = 1;
+
+        for (String studentId : enrolledStudents) {
+            Student student = backend.getStudent(studentId);
+            if (student == null) continue;
+
+            // Get attendance record from backend
+            AttendanceRecord record = backend.getStudentAttendanceForCourse(
+                    course.getCourseId(), studentId
+            );
+
+            String status = "Absent";
+            String date = "-";
+
+            if (record != null) {
+                status = record.getStatus().toString();
+                date = record.getFormattedTimestamp().split(" ")[0]; // Extract date
+            }
+
+            Object[] row = {
+                    rowNumber++,
+                    student.getFullName(),
+                    student.getProgram(),
+                    date,
+                    status
+            };
+
             tableModel.addRow(row);
         }
     }
-    
+
     private void filterTable() {
         String text = searchField.getText().trim();
         if (text.isEmpty() || text.equals("Search student name or ID")) {
@@ -496,31 +522,31 @@ public class TeacherListView extends JPanel {
             applyAllFilters();
         }
     }
-    
+
     private void showFilterDialog() {
-        JDialog filterDialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), 
-                                           "Filter Options", true);
+        JDialog filterDialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this),
+                "Filter Options", true);
         filterDialog.setLayout(new BorderLayout());
         filterDialog.setSize(480, 600);
         filterDialog.setLocationRelativeTo(this);
         filterDialog.setUndecorated(true);
-        
+
         // Main container - flat colors
         JPanel mainContainer = new JPanel(new BorderLayout());
         mainContainer.setBackground(new Color(245, 242, 233));
         mainContainer.setBorder(BorderFactory.createLineBorder(new Color(200, 190, 175), 2));
-        
+
         // Header panel - flat teal color
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setBackground(new Color(78, 129, 136));
         headerPanel.setPreferredSize(new Dimension(0, 60));
         headerPanel.setBorder(new EmptyBorder(15, 25, 15, 25));
-        
+
         JLabel titleLabel = new JLabel("Filter Options");
         titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
         titleLabel.setForeground(Color.WHITE);
         headerPanel.add(titleLabel, BorderLayout.WEST);
-        
+
         // Close button
         JLabel closeButton = new JLabel("✕");
         closeButton.setFont(new Font("Arial", Font.BOLD, 24));
@@ -541,102 +567,102 @@ public class TeacherListView extends JPanel {
             }
         });
         headerPanel.add(closeButton, BorderLayout.EAST);
-        
+
         mainContainer.add(headerPanel, BorderLayout.NORTH);
-        
+
         // Content panel with ScrollPane
         JPanel contentPanel = new JPanel();
         contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
         contentPanel.setBorder(new EmptyBorder(25, 30, 25, 30));
         contentPanel.setBackground(new Color(245, 242, 233));
-        
+
         // Date Filter Section
         JLabel dateLabel = new JLabel("Filter by Date:");
         dateLabel.setFont(new Font("Arial", Font.BOLD, 16));
         dateLabel.setForeground(new Color(60, 60, 60));
         dateLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         contentPanel.add(dateLabel);
-        
+
         contentPanel.add(Box.createRigidArea(new Dimension(0, 12)));
-        
+
         ButtonGroup dateGroup = new ButtonGroup();
-        
+
         // Custom styled radio buttons
         JRadioButton allTimeRadio = createStyledRadioButton("All Time", dateFilterType.equals("All Time"));
         dateGroup.add(allTimeRadio);
         contentPanel.add(allTimeRadio);
         contentPanel.add(Box.createRigidArea(new Dimension(0, 8)));
-        
+
         JRadioButton yesterdayRadio = createStyledRadioButton("Yesterday", dateFilterType.equals("Yesterday"));
         dateGroup.add(yesterdayRadio);
         contentPanel.add(yesterdayRadio);
         contentPanel.add(Box.createRigidArea(new Dimension(0, 8)));
-        
+
         JRadioButton thisWeekRadio = createStyledRadioButton("This Week", dateFilterType.equals("This Week"));
         dateGroup.add(thisWeekRadio);
         contentPanel.add(thisWeekRadio);
         contentPanel.add(Box.createRigidArea(new Dimension(0, 8)));
-        
+
         JRadioButton thisMonthRadio = createStyledRadioButton("This Month", dateFilterType.equals("This Month"));
         dateGroup.add(thisMonthRadio);
         contentPanel.add(thisMonthRadio);
         contentPanel.add(Box.createRigidArea(new Dimension(0, 8)));
-        
+
         JRadioButton customRadio = createStyledRadioButton("Custom Date Range", dateFilterType.equals("Custom"));
         dateGroup.add(customRadio);
         contentPanel.add(customRadio);
-        
+
         contentPanel.add(Box.createRigidArea(new Dimension(0, 12)));
-        
+
         // Date picker panel (for custom range)
         JPanel datePickerPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 8));
         datePickerPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
         datePickerPanel.setBackground(new Color(218, 209, 193));
         datePickerPanel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(200, 190, 175), 1),
-            new EmptyBorder(8, 12, 8, 12)
+                BorderFactory.createLineBorder(new Color(200, 190, 175), 1),
+                new EmptyBorder(8, 12, 8, 12)
         ));
         datePickerPanel.setMaximumSize(new Dimension(420, 50));
-        
+
         JLabel fromLabel = new JLabel("From:");
         fromLabel.setFont(new Font("Arial", Font.BOLD, 12));
         fromLabel.setForeground(new Color(80, 80, 80));
         datePickerPanel.add(fromLabel);
-        
+
         JTextField startDateField = new JTextField(10);
         startDateField.setFont(new Font("Arial", Font.PLAIN, 13));
         startDateField.setText(customStartDate != null ? customStartDate.toString() : "yyyy-MM-dd");
         startDateField.setEnabled(customRadio.isSelected());
         startDateField.setBackground(new Color(218, 209, 193));
         startDateField.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(180, 170, 155), 1),
-            new EmptyBorder(5, 8, 5, 8)
+                BorderFactory.createLineBorder(new Color(180, 170, 155), 1),
+                new EmptyBorder(5, 8, 5, 8)
         ));
         startDateField.setForeground(new Color(60, 60, 60));
         datePickerPanel.add(startDateField);
-        
+
         JLabel toLabel = new JLabel("To:");
         toLabel.setFont(new Font("Arial", Font.BOLD, 12));
         toLabel.setForeground(new Color(80, 80, 80));
         datePickerPanel.add(toLabel);
-        
+
         JTextField endDateField = new JTextField(10);
         endDateField.setFont(new Font("Arial", Font.PLAIN, 13));
         endDateField.setText(customEndDate != null ? customEndDate.toString() : "yyyy-MM-dd");
         endDateField.setEnabled(customRadio.isSelected());
         endDateField.setBackground(new Color(218, 209, 193));
         endDateField.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(180, 170, 155), 1),
-            new EmptyBorder(5, 8, 5, 8)
+                BorderFactory.createLineBorder(new Color(180, 170, 155), 1),
+                new EmptyBorder(5, 8, 5, 8)
         ));
         endDateField.setForeground(new Color(60, 60, 60));
         datePickerPanel.add(endDateField);
-        
+
         customRadio.addActionListener(e -> {
             startDateField.setEnabled(true);
             endDateField.setEnabled(true);
         });
-        
+
         allTimeRadio.addActionListener(e -> {
             startDateField.setEnabled(false);
             endDateField.setEnabled(false);
@@ -653,9 +679,9 @@ public class TeacherListView extends JPanel {
             startDateField.setEnabled(false);
             endDateField.setEnabled(false);
         });
-        
+
         contentPanel.add(datePickerPanel);
-        
+
         // Separator line
         contentPanel.add(Box.createRigidArea(new Dimension(0, 20)));
         JPanel separator = new JPanel();
@@ -663,32 +689,32 @@ public class TeacherListView extends JPanel {
         separator.setBackground(new Color(200, 190, 175));
         contentPanel.add(separator);
         contentPanel.add(Box.createRigidArea(new Dimension(0, 20)));
-        
+
         // Status Filter Section
         JLabel statusLabel = new JLabel("Filter by Status:");
         statusLabel.setFont(new Font("Arial", Font.BOLD, 16));
         statusLabel.setForeground(new Color(60, 60, 60));
         statusLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         contentPanel.add(statusLabel);
-        
+
         contentPanel.add(Box.createRigidArea(new Dimension(0, 12)));
-        
+
         JCheckBox presentBox = createStyledCheckBox("Present", filterPresent);
         contentPanel.add(presentBox);
-        
+
         contentPanel.add(Box.createRigidArea(new Dimension(0, 8)));
-        
+
         JCheckBox absentBox = createStyledCheckBox("Absent", filterAbsent);
         contentPanel.add(absentBox);
-        
+
         contentPanel.add(Box.createRigidArea(new Dimension(0, 25)));
-        
+
         // Buttons panel
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 0));
         buttonPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
         buttonPanel.setBackground(new Color(245, 242, 233));
         buttonPanel.setMaximumSize(new Dimension(420, 45));
-        
+
         // Apply button - flat design
         JButton applyButton = new JButton("Apply Filter");
         applyButton.setFont(new Font("Arial", Font.BOLD, 14));
@@ -724,22 +750,22 @@ public class TeacherListView extends JPanel {
                     customEndDate = LocalDate.parse(endDateField.getText());
                     dateFilterType = "Custom";
                 } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(filterDialog, 
-                        "Invalid date format. Please use yyyy-MM-dd", 
-                        "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(filterDialog,
+                            "Invalid date format. Please use yyyy-MM-dd",
+                            "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
             }
-            
+
             filterPresent = presentBox.isSelected();
             filterAbsent = absentBox.isSelected();
-            
+
             applyAllFilters();
             updateActiveFiltersDisplay();
             filterDialog.dispose();
         });
         buttonPanel.add(applyButton);
-        
+
         // Cancel button - flat design
         JButton cancelButton = new JButton("Cancel");
         cancelButton.setFont(new Font("Arial", Font.BOLD, 14));
@@ -761,21 +787,21 @@ public class TeacherListView extends JPanel {
         });
         cancelButton.addActionListener(e -> filterDialog.dispose());
         buttonPanel.add(cancelButton);
-        
+
         contentPanel.add(buttonPanel);
-        
+
         // Add content panel to a scroll pane
         JScrollPane scrollPane = new JScrollPane(contentPanel);
         scrollPane.setBorder(null);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         scrollPane.setBackground(new Color(245, 242, 233));
-        
+
         mainContainer.add(scrollPane, BorderLayout.CENTER);
-        
+
         filterDialog.add(mainContainer);
         filterDialog.setVisible(true);
     }
-    
+
     // Helper method to create styled radio buttons
     private JRadioButton createStyledRadioButton(String text, boolean selected) {
         JRadioButton radio = new JRadioButton(text, selected);
@@ -786,7 +812,7 @@ public class TeacherListView extends JPanel {
         radio.setCursor(new Cursor(Cursor.HAND_CURSOR));
         return radio;
     }
-    
+
     // Helper method to create styled checkboxes
     private JCheckBox createStyledCheckBox(String text, boolean selected) {
         JCheckBox checkBox = new JCheckBox(text, selected);
@@ -797,58 +823,57 @@ public class TeacherListView extends JPanel {
         checkBox.setCursor(new Cursor(Cursor.HAND_CURSOR));
         return checkBox;
     }
-    
+
     private void applyAllFilters() {
         List<RowFilter<DefaultTableModel, Integer>> filters = new ArrayList<>();
-        
+
         // Search filter
         String searchText = searchField.getText().trim();
         if (!searchText.isEmpty() && !searchText.equals("Search student name or ID")) {
             filters.add(RowFilter.regexFilter("(?i)" + searchText));
         }
-        
-        // Date filter
+
+        // Date filter - get from backend
         if (!dateFilterType.equals("All Time")) {
-            LocalDate today = LocalDate.now();
-            LocalDate startDate = null;
-            LocalDate endDate = today;
-            
-            switch (dateFilterType) {
-                case "Yesterday":
-                    startDate = today.minusDays(1);
-                    endDate = today.minusDays(1);
-                    break;
-                case "This Week":
-                    startDate = today.with(TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
-                    break;
-                case "This Month":
-                    startDate = today.with(TemporalAdjusters.firstDayOfMonth());
-                    break;
-                case "Custom":
-                    startDate = customStartDate;
-                    endDate = customEndDate;
-                    break;
-            }
-            
-            if (startDate != null) {
-                final LocalDate finalStartDate = startDate;
-                final LocalDate finalEndDate = endDate;
-                
-                filters.add(new RowFilter<DefaultTableModel, Integer>() {
-                    @Override
-                    public boolean include(Entry<? extends DefaultTableModel, ? extends Integer> entry) {
-                        String dateStr = entry.getStringValue(3); // Date column
-                        try {
-                            LocalDate rowDate = LocalDate.parse(dateStr);
-                            return !rowDate.isBefore(finalStartDate) && !rowDate.isAfter(finalEndDate);
-                        } catch (Exception e) {
-                            return false;
-                        }
-                    }
-                });
+            BackendManager backend = BackendManager.getInstance();
+            Course course = backend.getCourseByName(currentCourseName);
+
+            if (course != null) {
+                java.time.LocalDate today = java.time.LocalDate.now();
+                java.time.LocalDate startDate = null;
+                java.time.LocalDate endDate = today;
+
+                switch (dateFilterType) {
+                    case "Yesterday":
+                        startDate = today.minusDays(1);
+                        endDate = today.minusDays(1);
+                        break;
+                    case "This Week":
+                        startDate = today.with(java.time.temporal.TemporalAdjusters
+                                .previousOrSame(java.time.DayOfWeek.MONDAY));
+                        break;
+                    case "This Month":
+                        startDate = today.with(java.time.temporal.TemporalAdjusters
+                                .firstDayOfMonth());
+                        break;
+                    case "Custom":
+                        startDate = customStartDate;
+                        endDate = customEndDate;
+                        break;
+                }
+
+                if (startDate != null) {
+                    // Reload data with date filter
+                    Set<AttendanceRecord.AttendanceStatus> statusFilter = new HashSet<>();
+                    if (filterPresent) statusFilter.add(AttendanceRecord.AttendanceStatus.PRESENT);
+                    if (filterAbsent) statusFilter.add(AttendanceRecord.AttendanceStatus.ABSENT);
+
+                    reloadFilteredData(course.getCourseId(), startDate, endDate, statusFilter);
+                    return; // Skip normal filtering
+                }
             }
         }
-        
+
         // Status filter
         if (!filterPresent || !filterAbsent) {
             if (filterPresent) {
@@ -856,21 +881,60 @@ public class TeacherListView extends JPanel {
             } else if (filterAbsent) {
                 filters.add(RowFilter.regexFilter("Absent", 4));
             } else {
-                filters.add(RowFilter.regexFilter("^$", 4)); // Show nothing
+                filters.add(RowFilter.regexFilter("^$", 4));
             }
         }
-        
-        // Apply combined filter
+
+        // Apply filters
         if (filters.isEmpty()) {
             sorter.setRowFilter(null);
         } else {
             sorter.setRowFilter(RowFilter.andFilter(filters));
         }
     }
-    
+
+    private void reloadFilteredData(String courseId, java.time.LocalDate fromDate,
+                                    java.time.LocalDate toDate,
+                                    Set<AttendanceRecord.AttendanceStatus> statuses) {
+        BackendManager backend = BackendManager.getInstance();
+        List<AttendanceRecord> filteredRecords = backend.getFilteredAttendance(
+                courseId, fromDate, toDate, statuses
+        );
+
+        // Clear and reload table
+        tableModel.setRowCount(0);
+
+        Course course = backend.getCourse(courseId);
+        if (course == null) return;
+
+        int rowNumber = 1;
+        for (String studentId : course.getEnrolledStudentIds()) {
+            Student student = backend.getStudent(studentId);
+            if (student == null) continue;
+
+            // Find matching filtered record
+            AttendanceRecord record = filteredRecords.stream()
+                    .filter(r -> r.getStudentId().equals(studentId))
+                    .findFirst()
+                    .orElse(null);
+
+            if (record != null) {
+                Object[] row = {
+                        rowNumber++,
+                        student.getFullName(),
+                        student.getProgram(),
+                        record.getFormattedTimestamp().split(" ")[0],
+                        record.getStatus().toString()
+                };
+                tableModel.addRow(row);
+            }
+        }
+    }
+
     public void setClassInfo(String courseName, String courseCode) {
         this.currentCourseName = courseName;
         this.currentCourseCode = courseCode;
         titleLabel.setText("> Class > Attendance > Attendance List");
+        loadRealAttendanceData();
     }
 }

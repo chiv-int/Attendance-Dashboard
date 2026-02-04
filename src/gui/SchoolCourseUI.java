@@ -1,6 +1,9 @@
 package gui;
 
 import javax.swing.*;
+
+import models.Course;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
@@ -216,6 +219,38 @@ public class SchoolCourseUI extends JFrame {
         gbc.insets = new Insets(30, 50, 0, 50);
         gbc.anchor = GridBagConstraints.NORTHWEST;
 
+        // Get courses from backend
+        BackendManager backend = BackendManager.getInstance();
+        List<Course> userCourses = backend.getCoursesForCurrentUser();
+        
+        courseCards = new ArrayList<>();
+        
+        int rowIndex = 1;
+        for (Course course : userCourses) {
+            gbc.gridy = rowIndex;
+            gbc.insets = new Insets(20, 50, 0, 50);
+            
+            CourseCard card = new CourseCard(
+                course.getCourseName(), 
+                "Lecturer"  // Could add lecturer name to Course model
+            );
+            card.setPreferredSize(new Dimension(0, 120));
+            card.setCursor(new Cursor(Cursor.HAND_CURSOR));
+            card.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    SchoolCourseDetailUI courseDetailUI = new SchoolCourseDetailUI(
+                        course.getCourseName()
+                    );
+                    courseDetailUI.setVisible(true);
+                    disposeCourseFrame();
+                }
+            });
+            contentPanel.add(card, gbc);
+            courseCards.add(card);
+            rowIndex++;
+        }
+
         // Title
         JLabel courseTitle = new JLabel("Courses");
         courseTitle.setFont(new Font("Arial", Font.PLAIN, 16));
@@ -231,8 +266,7 @@ public class SchoolCourseUI extends JFrame {
             "Database Management Systems"
         };
         String lecturer = "Lecturer";
-
-        int rowIndex = 1;
+        
         for (String courseName : courses) {
             gbc.gridy = rowIndex;
             gbc.insets = new Insets(20, 50, 0, 50);

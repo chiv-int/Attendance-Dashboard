@@ -1,6 +1,9 @@
 package gui;
 
 import javax.swing.*;
+
+import models.User;
+
 import java.awt.*;
 
 public class SchoolLoginUI extends JFrame {
@@ -179,43 +182,43 @@ public class SchoolLoginUI extends JFrame {
         
         add(mainPanel);
     }
-    
     private void handleLogin() {
-        String username = usernameField.getText().trim().toLowerCase();
-        String password = new String(passwordField.getPassword());
+    String username = usernameField.getText().trim();
+    String password = new String(passwordField.getPassword());
+    
+    if (username.isEmpty() || password.isEmpty()) {
+        JOptionPane.showMessageDialog(this, 
+            "Please enter both username and password", 
+            "Login Error", 
+            JOptionPane.ERROR_MESSAGE);
+        return;
+    }
+    
+    // NEW CODE - Use BackendManager
+    BackendManager backend = BackendManager.getInstance();
+    
+    if (backend.login(username, password)) {
+        User user = backend.getCurrentUser();
         
-        if (username.isEmpty() || password.isEmpty()) {
-            JOptionPane.showMessageDialog(this, 
-                "Please enter both username and password", 
-                "Login Error", 
-                JOptionPane.ERROR_MESSAGE);
-            return;
-        }
+        this.dispose();
         
-        if (username.equals("student")) {
-            this.dispose();
+        if (user.isStudent()) {
             SwingUtilities.invokeLater(() -> {
                 SchoolHomeUI homeFrame = new SchoolHomeUI();
                 homeFrame.setVisible(true);
             });
-        } else if (username.equals("teacher")) {
-            this.dispose();
+        } else if (user.isTeacher()) {
             SwingUtilities.invokeLater(() -> {
                 MainFrame mainFrame = new MainFrame();
                 mainFrame.setVisible(true);
             });
-        } else {
-            JOptionPane.showMessageDialog(this, 
-                "Invalid username. Use 'student' or 'teacher'.", 
-                "Login Error", 
-                JOptionPane.ERROR_MESSAGE);
         }
+    } else {
+        JOptionPane.showMessageDialog(this, 
+            "Invalid username or password", 
+            "Login Error", 
+            JOptionPane.ERROR_MESSAGE);
     }
-
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            SchoolLoginUI frame = new SchoolLoginUI();
-            frame.setVisible(true);
-        });
-    }
+}
+    
 }

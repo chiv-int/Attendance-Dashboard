@@ -2,6 +2,9 @@ package gui;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import java.util.List;
+import models.Course;
+
 import java.awt.*;
 
 /**
@@ -325,53 +328,56 @@ public class TeacherDashboardView extends JPanel {
         return scrollPane;
     }
 
-    private JScrollPane createClassesPanel() {
-        JPanel classesContentPanel = new JPanel();
-        classesContentPanel.setLayout(new BoxLayout(classesContentPanel, BoxLayout.Y_AXIS));
-        classesContentPanel.setBackground(new Color(78, 129, 136));
-        classesContentPanel.setBorder(new EmptyBorder(20, 30, 20, 30));
+    // In TeacherDashboardView.java - Update createClassesPanel()
 
-        // Title
-        JLabel classesTitle = new JLabel("Classes");
-        classesTitle.setFont(new Font("Arial", Font.PLAIN, 14));
-        classesTitle.setForeground(new Color(176, 176, 176));
-        classesTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
-        classesContentPanel.add(classesTitle);
+private JScrollPane createClassesPanel() {
+    JPanel classesContentPanel = new JPanel();
+    classesContentPanel.setLayout(new BoxLayout(classesContentPanel, BoxLayout.Y_AXIS));
+    classesContentPanel.setBackground(new Color(78, 129, 136));
+    classesContentPanel.setBorder(new EmptyBorder(20, 30, 20, 30));
 
+    // Title
+    JLabel classesTitle = new JLabel("Classes");
+    classesTitle.setFont(new Font("Arial", Font.PLAIN, 14));
+    classesTitle.setForeground(new Color(176, 176, 176));
+    classesTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
+    classesContentPanel.add(classesTitle);
+
+    classesContentPanel.add(Box.createRigidArea(new Dimension(0, 20)));
+
+    // Load real courses from backend
+    BackendManager backend = BackendManager.getInstance();
+    List<Course> teacherCourses = backend.getCoursesForCurrentUser();
+
+    for (Course course : teacherCourses) {
+        JPanel classCard = createStudentStyleClassCard(
+            course.getCourseCode(), 
+            course.getCourseName()
+        );
+        classCard.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        classCard.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                mainFrame.showClassDetail(
+                    course.getCourseName(), 
+                    course.getCourseCode()
+                );
+            }
+        });
+        
+        classesContentPanel.add(classCard);
         classesContentPanel.add(Box.createRigidArea(new Dimension(0, 20)));
-
-        // Class cards
-        String[][] classes = {
-            {"CS301", "Data Structures & Algorithms"},
-            {"CS402", "Machine Learning"},
-            {"CS205", "Database Systems"},
-            {"CS101", "Introduction to Programming"}
-        };
-
-        for (String[] classInfo : classes) {
-            JPanel classCard = createStudentStyleClassCard(classInfo[0], classInfo[1]);
-            classCard.setAlignmentX(Component.LEFT_ALIGNMENT);
-            final String courseCode = classInfo[0];
-            final String courseName = classInfo[1];
-            classCard.addMouseListener(new java.awt.event.MouseAdapter() {
-                @Override
-                public void mouseClicked(java.awt.event.MouseEvent e) {
-                    mainFrame.showClassDetail(courseName, courseCode);
-                }
-            });
-            classesContentPanel.add(classCard);
-            classesContentPanel.add(Box.createRigidArea(new Dimension(0, 20)));
-        }
-
-        // Scroll pane
-        JScrollPane scrollPane = new JScrollPane(classesContentPanel);
-        scrollPane.setBorder(null);
-        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
-        scrollPane.setBackground(new Color(78, 129, 136));
-
-        return scrollPane;
     }
 
+    // Scroll pane
+    JScrollPane scrollPane = new JScrollPane(classesContentPanel);
+    scrollPane.setBorder(null);
+    scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+    scrollPane.setBackground(new Color(78, 129, 136));
+
+    return scrollPane;
+}
     private JPanel createStudentStyleClassCard(String courseCode, String courseName) {
         JPanel card = new JPanel() {
             @Override

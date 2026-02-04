@@ -11,7 +11,7 @@ import java.sql.SQLException;
 public class DatabaseConnection {
     private static final String DB_URL = "jdbc:mysql://localhost:3306/attendance_dashboard";
     private static final String DB_USER = "root"; // Change to your MySQL username
-    private static final String DB_PASSWORD = "240407"; // Change to your MySQL password
+    private static final String DB_PASSWORD = "chiv279520"; // Change to your MySQL password
     
     private static DatabaseConnection instance;
     private Connection connection;

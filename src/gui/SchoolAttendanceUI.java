@@ -1,6 +1,11 @@
 package gui;
 
 import javax.swing.*;
+
+import models.AttendanceRecord;
+import models.Course;
+import models.Student;
+
 import java.awt.*;
 import java.awt.event.*;
 
@@ -334,87 +339,131 @@ public class SchoolAttendanceUI extends JFrame {
         return wrapperPanel;
     }
 
-    private void handleSubmit() {
-        String password = new String(passwordField.getPassword());
-        String status = presentButton.isSelected() ? "Present" : "Late";
+    // In SchoolAttendanceUI.java - Replace handleSubmit()
 
-        if (password.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Please enter a password", "Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
+private void handleSubmit() {
+    String password = new String(passwordField.getPassword());
+    
+    if (password.isEmpty()) {
+        JOptionPane.showMessageDialog(this, 
+            "Please enter the attendance password", 
+            "Error", JOptionPane.ERROR_MESSAGE);
+        return;
+    }
+    
+    // Determine status from radio buttons
+    AttendanceRecord.AttendanceStatus status = presentButton.isSelected() 
+        ? AttendanceRecord.AttendanceStatus.PRESENT 
+        : AttendanceRecord.AttendanceStatus.LATE;
+    
+    // Get backend and current user
+    BackendManager backend = BackendManager.getInstance();
+    Student student = backend.getCurrentStudent();
+    
+    if (student == null) {
+        JOptionPane.showMessageDialog(this, 
+            "No student logged in", 
+            "Error", JOptionPane.ERROR_MESSAGE);
+        return;
+    }
+    
+    // Get course
+    Course course = backend.getCourseByName(currentCourseName);
+    
+    if (course == null) {
+        JOptionPane.showMessageDialog(this, 
+            "Course not found", 
+            "Error", JOptionPane.ERROR_MESSAGE);
+        return;
+    }
+    
+    // Attempt to mark attendance
+    boolean success = backend.markAttendance(
+        course.getCourseId(),
+        student.getStudentId(),
+        status,
+        password
+    );
+    
+    if (success) {
         // Show success dialog
-        JDialog successDialog = new JDialog(this, "Success", true);
-        successDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-        successDialog.setSize(500, 300);
-        successDialog.setLocationRelativeTo(this);
-        successDialog.setUndecorated(true);
-
-        JPanel dialogPanel = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2d = (Graphics2D) g;
-                g2d.setColor(new Color(0, 0, 0, 200));
-                g2d.fillRect(0, 0, getWidth(), getHeight());
-            }
-        };
-        dialogPanel.setLayout(new GridBagLayout());
-        dialogPanel.setOpaque(false);
-
-        // Success card
-        JPanel cardPanel = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2d = (Graphics2D) g;
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2d.setColor(new Color(245, 242, 233));
-                g2d.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 15, 15);
-            }
-        };
-        cardPanel.setLayout(new GridBagLayout());
-        cardPanel.setOpaque(false);
-        cardPanel.setPreferredSize(new Dimension(400, 100));
-
-        JLabel successLabel = new JLabel("Submission sent!");
-        successLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        successLabel.setForeground(new Color(60, 60, 60));
-
-        GridBagConstraints cardGbc = new GridBagConstraints();
-        cardPanel.add(successLabel, cardGbc);
-
-        GridBagConstraints mainGbc = new GridBagConstraints();
-        mainGbc.gridx = 0;
-        mainGbc.gridy = 0;
-        dialogPanel.add(cardPanel, mainGbc);
-
-        JLabel continueLabel = new JLabel("Click anywhere to continue");
-        continueLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-        continueLabel.setForeground(new Color(200, 200, 200));
-        mainGbc.gridy = 1;
-        mainGbc.insets = new Insets(50, 0, 0, 0);
-        dialogPanel.add(continueLabel, mainGbc);
-
-        dialogPanel.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                successDialog.dispose();
-                navigateToCourseDetail();
-            }
-        });
-
-        successDialog.add(dialogPanel);
-        successDialog.setVisible(true);
+        showSuccessDialog();
+    } else {
+        JOptionPane.showMessageDialog(this, 
+            "Failed to mark attendance.\n" +
+            "Possible reasons:\n" +
+            "- Invalid password\n" +
+            "- Outside attendance time window\n" +
+            "- Already marked attendance", 
+            "Error", JOptionPane.ERROR_MESSAGE);
     }
+}
 
-    private void navigateToCourseDetail() {
-        this.dispose();
-        SwingUtilities.invokeLater(() -> {
-            SchoolCourseDetailUI detailFrame = new SchoolCourseDetailUI(currentCourseName);
-            detailFrame.setVisible(true);
-        });
-    }
+private void showSuccessDialog() {
+    JDialog successDialog = new JDialog(this, "Success", true);
+    successDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+    successDialog.setSize(500, 300);
+    successDialog.setLocationRelativeTo(this);
+    successDialog.setUndecorated(true);
+
+    JPanel dialogPanel = new JPanel() {
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Graphics2D g2d = (Graphics2D) g;
+            g2d.setColor(new Color(0, 0, 0, 200));
+            g2d.fillRect(0, 0, getWidth(), getHeight());
+        }
+    };
+    dialogPanel.setLayout(new GridBagLayout());
+    dialogPanel.setOpaque(false);
+
+    // Success card
+    JPanel cardPanel = new JPanel() {
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Graphics2D g2d = (Graphics2D) g;
+            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
+                                RenderingHints.VALUE_ANTIALIAS_ON);
+            g2d.setColor(new Color(245, 242, 233));
+            g2d.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 15, 15);
+        }
+    };
+    cardPanel.setLayout(new GridBagLayout());
+    cardPanel.setOpaque(false);
+    cardPanel.setPreferredSize(new Dimension(400, 100));
+
+    JLabel successLabel = new JLabel("✓ Attendance Marked Successfully!");
+    successLabel.setFont(new Font("Arial", Font.BOLD, 24));
+    successLabel.setForeground(new Color(60, 60, 60));
+
+    GridBagConstraints cardGbc = new GridBagConstraints();
+    cardPanel.add(successLabel, cardGbc);
+
+    GridBagConstraints mainGbc = new GridBagConstraints();
+    mainGbc.gridx = 0;
+    mainGbc.gridy = 0;
+    dialogPanel.add(cardPanel, mainGbc);
+
+    JLabel continueLabel = new JLabel("Click anywhere to continue");
+    continueLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+    continueLabel.setForeground(new Color(200, 200, 200));
+    mainGbc.gridy = 1;
+    mainGbc.insets = new Insets(50, 0, 0, 0);
+    dialogPanel.add(continueLabel, mainGbc);
+
+    dialogPanel.addMouseListener(new MouseAdapter() {
+        @Override
+        public void mouseClicked(MouseEvent e) {
+            successDialog.dispose();
+            navigateToCourseDetail();
+        }
+    });
+
+    successDialog.add(dialogPanel);
+    successDialog.setVisible(true);
+}
 
     private JPanel createFooter() {
         JPanel footerPanel = new JPanel() {
@@ -463,6 +512,14 @@ public class SchoolAttendanceUI extends JFrame {
         SwingUtilities.invokeLater(() -> {
             SchoolAttendanceUI frame = new SchoolAttendanceUI("Introduction to Software Engineering");
             frame.setVisible(true);
+        });
+    }
+
+    private void navigateToCourseDetail() {
+        this.dispose();
+        SwingUtilities.invokeLater(() -> {
+            SchoolCourseDetailUI courseDetailFrame = new SchoolCourseDetailUI(currentCourseName);
+            courseDetailFrame.setVisible(true);
         });
     }
 }
