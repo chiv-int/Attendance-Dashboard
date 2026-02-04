@@ -1,2 +1,21 @@
+# Ignore compiled class files
 *.class
-bin/
+
+# Build directories
+/bin/
+/out/
+/build/
+/target/
+
+# IDE files
+/.idea/
+.vscode/
+
+# Eclipse files
+*.classpath
+*.project
+.settings/
+
+# Misc
+Thumbs.db
+.DS_Store
