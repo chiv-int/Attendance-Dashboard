@@ -3,9 +3,7 @@ package service;
 import models.*;
 import java.util.*;
 
-/**
- * StudentService - Responsibility: Orchestrate student-related operations
- */
+
 public class StudentService {
     private final CourseRepository courseRepository;
     private final AttendanceService attendanceService;
@@ -17,18 +15,13 @@ public class StudentService {
         this.contentService = new CourseContentService(courseRepository);
     }
     
-    /**
-     * Mark attendance for a course
-     */
+
     public boolean markAttendance(String courseName, String password, 
                                   String studentName, String major, 
                                   AttendanceRecord.AttendanceStatus status) {
         return attendanceService.markAttendance(courseName, password, studentName, major, status);
     }
-    
-    /**
-     * View all available courses
-     */
+
     public void viewAvailableCourses() {
         Map<String, Course> courses = courseRepository.getAllCourses();
         
@@ -42,17 +35,11 @@ public class StudentService {
             System.out.println("- " + courseName);
         }
     }
-    
-    /**
-     * View lessons for a course
-     */
     public void viewLessons(String courseName) {
         contentService.viewLessons(courseName);
     }
     
-    /**
-     * View exercises for a course
-     */
+
     public void viewExercises(String courseName) {
         contentService.viewExercises(courseName);
     }

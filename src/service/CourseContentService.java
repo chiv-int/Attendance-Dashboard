@@ -3,19 +3,14 @@ package service;
 import models.*;
 import java.util.*;
 
-/**
- * CourseContentService - Responsibility: Manage course lessons and exercises
- */
+
 public class CourseContentService {
     private final CourseRepository courseRepository;
     
     public CourseContentService(CourseRepository courseRepository) {
         this.courseRepository = courseRepository;
     }
-    
-    /**
-     * Add a lesson to a course
-     */
+
     public void addLesson(String courseName, String title, String content) {
         Course course = courseRepository.getCourse(courseName);
         if (course == null) {
@@ -28,9 +23,7 @@ public class CourseContentService {
         System.out.println("Lesson added: " + title);
     }
     
-    /**
-     * Add an exercise to a course
-     */
+
     public void addExercise(String courseName, String title, String description) {
         Course course = courseRepository.getCourse(courseName);
         if (course == null) {
@@ -42,10 +35,7 @@ public class CourseContentService {
         course.addExercise(exercise);
         System.out.println("Exercise added: " + title);
     }
-    
-    /**
-     * View all lessons for a course
-     */
+
     public void viewLessons(String courseName) {
         Course course = courseRepository.getCourse(courseName);
         if (course == null) {
@@ -66,10 +56,7 @@ public class CourseContentService {
             System.out.println("   " + lesson.getContent());
         }
     }
-    
-    /**
-     * View all exercises for a course
-     */
+
     public void viewExercises(String courseName) {
         Course course = courseRepository.getCourse(courseName);
         if (course == null) {

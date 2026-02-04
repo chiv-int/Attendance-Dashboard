@@ -2,14 +2,9 @@ package service;
 
 import java.util.Random;
 
-/**
- * PasswordGenerator - Responsibility: Generate random passwords
- */
+
 public class PasswordGenerator {
-    
-    /**
-     * Generate a random 6-character alphanumeric password
-     */
+
     public String generateRandomPassword() {
         String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         StringBuilder password = new StringBuilder();

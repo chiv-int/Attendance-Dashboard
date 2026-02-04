@@ -8,10 +8,6 @@ import models.Lesson;
 import models.Quiz;
 import util.DatabaseConnection;
 
-/**
- * Data Access Object for Course management
- * Handles course operations in the database
- */
 public class CourseDao {
     private final Connection connection;
 
@@ -19,9 +15,7 @@ public class CourseDao {
         this.connection = DatabaseConnection.getInstance().getConnection();
     }
 
-    /**
-     * Get course by ID
-     */
+
     public Course getCourseById(String courseId) {
         String sql = "SELECT * FROM courses WHERE course_id = ?";
         
@@ -53,10 +47,6 @@ public class CourseDao {
         }
         return null;
     }
-
-    /**
-     * Get all courses for a teacher
-     */
     public List<Course> getCoursesByTeacher(String teacherId) {
         List<Course> courses = new ArrayList<>();
         String sql = "SELECT * FROM courses WHERE teacher_id = ?";
@@ -88,10 +78,6 @@ public class CourseDao {
         }
         return courses;
     }
-
-    /**
-     * Get enrolled courses for a student
-     */
     public List<Course> getEnrolledCourses(String studentId) {
         List<Course> courses = new ArrayList<>();
         String sql = "SELECT c.* FROM courses c " +
@@ -125,10 +111,6 @@ public class CourseDao {
         }
         return courses;
     }
-
-    /**
-     * Enroll a student in a course
-     */
     public boolean enrollStudent(String courseId, String studentId) {
         String sql = "INSERT INTO course_enrollments (student_id, course_id) VALUES (?, ?)";
         
@@ -143,10 +125,6 @@ public class CourseDao {
         }
         return false;
     }
-
-    /**
-     * Load enrollments for a course
-     */
     private void loadEnrollments(Course course) {
         String sql = "SELECT student_id FROM course_enrollments WHERE course_id = ?";
         
@@ -163,10 +141,6 @@ public class CourseDao {
             e.printStackTrace();
         }
     }
-
-    /**
-     * Load lessons for a course
-     */
     private void loadLessons(Course course) {
         String sql = "SELECT * FROM lessons WHERE course_id = ? ORDER BY lesson_date";
         
@@ -192,10 +166,6 @@ public class CourseDao {
             e.printStackTrace();
         }
     }
-
-    /**
-     * Load quizzes for a course
-     */
     private void loadQuizzes(Course course) {
         String sql = "SELECT * FROM quizzes WHERE course_id = ? ORDER BY quiz_date";
         
@@ -221,10 +191,6 @@ public class CourseDao {
             e.printStackTrace();
         }
     }
-
-    /**
-     * Save a course
-     */
     public boolean saveCourse(Course course) {
         String sql = "INSERT INTO courses (course_id, course_code, course_name, teacher_id, schedule, credits) " +
                     "VALUES (?, ?, ?, ?, ?, ?)";
@@ -244,10 +210,6 @@ public class CourseDao {
         }
         return false;
     }
-
-    /**
-     * Save a lesson
-     */
     public boolean saveLesson(Lesson lesson) {
         String sql = "INSERT INTO lessons (lesson_id, course_id, lesson_title, lesson_description, " +
                     "lesson_date, duration_minutes, location) VALUES (?, ?, ?, ?, ?, ?, ?)";

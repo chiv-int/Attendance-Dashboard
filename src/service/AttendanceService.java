@@ -3,9 +3,7 @@ package service;
 import java.util.*;
 import models.*;
 
-/**
- * AttendanceService - Responsibility: Handle all attendance-related operations
- */
+
 public class AttendanceService {
     private final CourseRepository courseRepository;
     
@@ -13,9 +11,7 @@ public class AttendanceService {
         this.courseRepository = courseRepository;
     }
     
-    /**
-     * Mark student attendance for a course
-     */
+
     public boolean markAttendance(String courseName, String password, 
                                   String studentName, String major, 
                                   AttendanceRecord.AttendanceStatus status) {
@@ -42,10 +38,7 @@ public class AttendanceService {
         System.out.println("Student: " + studentName + " - Status: " + status);
         return true;
     }
-    
-    /**
-     * View all attendance records for a course
-     */
+
     public void viewAttendanceRecords(String courseName) {
         Course course = courseRepository.getCourse(courseName);
         if (course == null) {

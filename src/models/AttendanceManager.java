@@ -7,9 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/**
- * AttendanceManager class to manage all attendance records
- */
+
 public class AttendanceManager {
     private final Map<String, AttendanceRecord> attendanceRecords; // recordId -> AttendanceRecord
     private final Map<String, List<String>> courseAttendance; // courseId -> List of recordIds
@@ -30,18 +28,10 @@ public class AttendanceManager {
             throw new RuntimeException("Failed to initialize AttendanceDao: " + e.getMessage());
         }
     }
-
-    /**
-     * Verify attendance password
-     */
     public boolean verifyAttendancePassword(String password) {
         return User.hashPassword(password).equals(attendancePasswordHash);
     }
 
-    /**
-     * Mark attendance for a student in a specific course
-     * Validates that the password matches the specific course code
-     */
     public boolean markAttendance(String courseId, String studentId,
                                   AttendanceRecord.AttendanceStatus status,
                                   String markedBy, String password) {
@@ -85,9 +75,6 @@ public class AttendanceManager {
         return true;
     }
 
-    /**
-     * Validate that password matches the specific course's attendance code
-     */
     private boolean validateCourseAttendanceCode(String courseId, String password) {
         try {
             // Query attendance_codes table to find code for this course
@@ -99,9 +86,7 @@ public class AttendanceManager {
         }
     }
 
-    /**
-     * Get the code_id for a specific course and password
-     */
+
     private Integer getAttendanceCodeIdForCourse(String courseId, String password) {
         try {
             dao.AttendanceCodeDao codeDao = new dao.AttendanceCodeDao();
@@ -112,9 +97,7 @@ public class AttendanceManager {
         }
     }
 
-    /**
-     * Find attendance record for a specific student in a course
-     */
+
     public AttendanceRecord findAttendanceRecord(String courseId, String studentId) {
         List<String> recordIds = courseAttendance.get(courseId);
         if (recordIds == null) {
@@ -130,9 +113,7 @@ public class AttendanceManager {
         return null;
     }
 
-    /**
-     * Get all attendance records for a course
-     */
+
     public List<AttendanceRecord> getCourseAttendance(String courseId) {
         List<String> recordIds = courseAttendance.getOrDefault(courseId, new ArrayList<>());
         return recordIds.stream()
@@ -140,18 +121,12 @@ public class AttendanceManager {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Get all attendance records for a student across all courses
-     */
     public List<AttendanceRecord> getStudentAttendance(String studentId) {
         return attendanceRecords.values().stream()
                 .filter(record -> record.getStudentId().equals(studentId))
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Calculate attendance percentage for a student in a course
-     */
     public double calculateAttendancePercentage(String studentId, List<Lesson> courseLessons) {
         if (courseLessons.isEmpty()) {
             return 0.0;
@@ -167,9 +142,7 @@ public class AttendanceManager {
         return (presentCount * 100.0) / courseLessons.size();
     }
 
-    /**
-     * Display attendance summary for a course
-     */
+
     public void displayCourseAttendanceSummary(String courseId, Course course) {
         List<AttendanceRecord> records = getCourseAttendance(courseId);
 

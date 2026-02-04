@@ -8,10 +8,6 @@ import models.Teacher;
 import models.User;
 import util.DatabaseConnection;
 
-/**
- * Data Access Object for User management
- * Handles user authentication and retrieval from database
- */
 public class UserDao {
     private final Connection connection;
 
@@ -19,9 +15,6 @@ public class UserDao {
         this.connection = DatabaseConnection.getInstance().getConnection();
     }
 
-    /**
-     * Authenticate user by username and password
-     */
     public User authenticateUser(String username, String password) {
         String sql = "SELECT * FROM users WHERE username = ? AND password = ?";
         
@@ -47,10 +40,6 @@ public class UserDao {
         }
         return null;
     }
-
-    /**
-     * Get student by user ID
-     */
     public Student getStudentById(String userId) {
         String sql = "SELECT u.*, s.student_id, s.major, s.year_level " +
                     "FROM users u JOIN students s ON u.user_id = s.user_id " +
@@ -78,10 +67,6 @@ public class UserDao {
         }
         return null;
     }
-
-    /**
-     * Get teacher by user ID
-     */
     public Teacher getTeacherById(String userId) {
         String sql = "SELECT u.*, t.teacher_id, t.employee_id, t.department " +
                     "FROM users u JOIN teachers t ON u.user_id = t.user_id " +
@@ -109,10 +94,6 @@ public class UserDao {
         }
         return null;
     }
-
-    /**
-     * Save a new user
-     */
     public boolean saveUser(User user) {
         String sql = "INSERT INTO users (user_id, username, password, full_name, email, phone, role) VALUES (?, ?, ?, ?, ?, ?, ?)";
         
@@ -132,10 +113,6 @@ public class UserDao {
         }
         return false;
     }
-
-    /**
-     * Save a new student
-     */
     public boolean saveStudent(Student student) {
         try {
             connection.setAutoCommit(false);
@@ -176,10 +153,6 @@ public class UserDao {
         }
         return false;
     }
-
-    /**
-     * Save a new teacher
-     */
     public boolean saveTeacher(Teacher teacher) {
         try {
             connection.setAutoCommit(false);
@@ -221,10 +194,6 @@ public class UserDao {
         }
         return false;
     }
-
-    /**
-     * Get all students
-     */
     public List<Student> getAllStudents() {
         List<Student> students = new ArrayList<>();
         String sql = "SELECT u.*, s.student_id, s.major, s.year_level " +

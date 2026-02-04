@@ -6,10 +6,7 @@ import java.util.List;
 import models.AttendanceRecord;
 import util.DatabaseConnection;
 
-/**
- * Data Access Object for Attendance Records
- * Handles attendance record operations in the database
- */
+
 public class AttendanceDao {
     private final Connection connection;
 
@@ -17,9 +14,6 @@ public class AttendanceDao {
         this.connection = DatabaseConnection.getInstance().getConnection();
     }
 
-    /**
-     * Save attendance record
-     */
     public boolean saveAttendanceRecord(AttendanceRecord record, Integer codeId) {
         String sql = "INSERT INTO attendance_records (course_id, student_id, status, marked_by, notes, code_id) " +
                     "VALUES (?, ?, ?, ?, ?, ?) " +
@@ -97,9 +91,6 @@ public class AttendanceDao {
         }
     }
 
-    /**
-     * Get attendance record for a student in a course
-     */
     public AttendanceRecord getAttendanceRecord(String courseId, String studentId) {
         String sql = "SELECT * FROM attendance_records WHERE course_id = ? AND student_id = ?";
         
@@ -118,10 +109,6 @@ public class AttendanceDao {
         }
         return null;
     }
-
-    /**
-     * Get all attendance records for a course
-     */
     public List<AttendanceRecord> getAttendanceByCourse(String courseId) {
         List<AttendanceRecord> records = new ArrayList<>();
         String sql = "SELECT * FROM attendance_records WHERE course_id = ?";
@@ -140,10 +127,6 @@ public class AttendanceDao {
         }
         return records;
     }
-
-    /**
-     * Get all attendance records for a student
-     */
     public List<AttendanceRecord> getAttendanceByStudent(String studentId) {
         List<AttendanceRecord> records = new ArrayList<>();
         String sql = "SELECT * FROM attendance_records WHERE student_id = ? ORDER BY marked_at DESC";
@@ -162,10 +145,6 @@ public class AttendanceDao {
         }
         return records;
     }
-
-    /**
-     * Get attendance statistics for a student in a course
-     */
     public AttendanceStats getStudentAttendanceStats(String studentId, String courseId) {
         String sql = "SELECT " +
                     "COUNT(*) as total, " +
@@ -197,10 +176,6 @@ public class AttendanceDao {
         }
         return new AttendanceStats(0, 0, 0, 0, 0);
     }
-
-    /**
-     * Extract AttendanceRecord from ResultSet
-     */
     private AttendanceRecord extractAttendanceRecordFromResultSet(ResultSet rs) throws SQLException {
         AttendanceRecord.AttendanceStatus status = 
             AttendanceRecord.AttendanceStatus.valueOf(rs.getString("status"));
@@ -214,10 +189,6 @@ public class AttendanceDao {
         );
         return record;
     }
-
-    /**
-     * Inner class for attendance statistics
-     */
     public static class AttendanceStats {
         private final int total;
         private final int present;

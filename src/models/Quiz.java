@@ -3,9 +3,6 @@ package models;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-/**
- * Quiz class representing a course quiz
- */
 public class Quiz {
     private final String quizId;
     private final String courseId;

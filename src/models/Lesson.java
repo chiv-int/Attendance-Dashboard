@@ -3,9 +3,6 @@ package models;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-/**
- * Lesson class representing a single lesson/study session
- */
 public class Lesson {
     private final String lessonId;
     private final String courseId;
