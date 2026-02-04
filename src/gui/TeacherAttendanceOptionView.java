@@ -17,6 +17,8 @@ public class TeacherAttendanceOptionView extends JPanel {
     private JLabel titleLabel;
     private String currentCourseCode;
     private String currentCourseName;
+    private JLabel homeButton;
+    private JLabel classesButton;
     
     public TeacherAttendanceOptionView(MainFrame mainFrame) {
         this.mainFrame = mainFrame;
@@ -120,32 +122,11 @@ public class TeacherAttendanceOptionView extends JPanel {
         JPanel centerSection = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
         centerSection.setOpaque(false);
         
-        // Navigation - Home button
-        JLabel homeButton = new JLabel("Home");
-        homeButton.setFont(new Font("Arial", Font.BOLD, 13));
-        homeButton.setForeground(Color.WHITE);
-        homeButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        homeButton.addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override
-            public void mouseClicked(java.awt.event.MouseEvent e) {
-                mainFrame.backToTeacherDashboard();
-            }
-            @Override
-            public void mouseEntered(java.awt.event.MouseEvent e) {
-                homeButton.setForeground(new Color(168, 126, 79));
-            }
-            @Override
-            public void mouseExited(java.awt.event.MouseEvent e) {
-                homeButton.setForeground(Color.WHITE);
-            }
-        });
+        // Navigation buttons with custom styling
+        homeButton = createNavButton("Home", false);
         centerSection.add(homeButton);
 
-        // Navigation - Classes button
-        JLabel classesButton = new JLabel("Classes");
-        classesButton.setFont(new Font("Arial", Font.BOLD, 13));
-        classesButton.setForeground(new Color(150, 150, 150)); // Grayed out
-        classesButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        classesButton = createNavButton("Classes", true);
         centerSection.add(classesButton);
         
         headerPanel.add(centerSection, BorderLayout.CENTER);
@@ -188,6 +169,60 @@ public class TeacherAttendanceOptionView extends JPanel {
         headerPanel.add(rightSection, BorderLayout.EAST);
 
         return headerPanel;
+    }
+
+    private JLabel createNavButton(String text, boolean isActive) {
+        JLabel label = new JLabel(text) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                if (isActive()) {
+                    Graphics2D g2d = (Graphics2D) g;
+                    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2d.setColor(new Color(168, 126, 79, 20));
+                    g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 4, 4);
+
+                    g2d.setColor(new Color(168, 126, 79));
+                    g2d.setStroke(new BasicStroke(2));
+                    g2d.drawLine(0, getHeight() - 3, getWidth(), getHeight() - 3);
+                }
+                super.paintComponent(g);
+            }
+
+            private boolean isActive() {
+                return getText().equals("Classes");
+            }
+        };
+
+        label.setFont(new Font("Arial", Font.BOLD, 13));
+        label.setForeground(isActive ? new Color(168, 126, 79) : new Color(176, 176, 176));
+        label.setPreferredSize(new Dimension(80, 40));
+        label.setHorizontalAlignment(SwingConstants.CENTER);
+        label.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        label.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent e) {
+                label.setForeground(new Color(168, 126, 79));
+            }
+
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent e) {
+                if (label == classesButton) {
+                    label.setForeground(new Color(168, 126, 79));
+                } else {
+                    label.setForeground(new Color(176, 176, 176));
+                }
+            }
+
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (label == homeButton) {
+                    mainFrame.backToTeacherDashboard();
+                }
+            }
+        });
+
+        return label;
     }
 
     private void handleLogout() {
@@ -236,76 +271,179 @@ public class TeacherAttendanceOptionView extends JPanel {
         return card;
     }
     
-    // In TeacherAttendanceOptionView.java - Replace showGeneratePassword()
-
     private void showGeneratePassword() {
         // Create dialog for date/time input
         JDialog inputDialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), 
                                         "Generate Attendance Code", true);
         inputDialog.setLayout(new BorderLayout());
-        inputDialog.setSize(500, 400);
+        inputDialog.setSize(550, 520);
         inputDialog.setLocationRelativeTo(this);
+        inputDialog.setUndecorated(true);
         
+        // Main container
+        JPanel mainContainer = new JPanel(new BorderLayout());
+        mainContainer.setBackground(new Color(240, 237, 230));
+        mainContainer.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(78, 129, 136), 3),
+            BorderFactory.createEmptyBorder(0, 0, 0, 0)
+        ));
+        
+        // Header panel with gradient
+        JPanel headerPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                GradientPaint gradient = new GradientPaint(
+                    0, 0, new Color(78, 129, 136),
+                    0, getHeight(), new Color(61, 104, 116)
+                );
+                g2d.setPaint(gradient);
+                g2d.fillRect(0, 0, getWidth(), getHeight());
+            }
+        };
+        headerPanel.setLayout(new BorderLayout());
+        headerPanel.setPreferredSize(new Dimension(0, 70));
+        headerPanel.setBorder(new EmptyBorder(20, 30, 20, 30));
+        headerPanel.setOpaque(false);
+        
+        JLabel titleLabel = new JLabel("Generate Attendance Code");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 22));
+        titleLabel.setForeground(Color.WHITE);
+        headerPanel.add(titleLabel, BorderLayout.WEST);
+        
+        // Close button
+        JLabel closeBtn = new JLabel("✕");
+        closeBtn.setFont(new Font("Arial", Font.BOLD, 28));
+        closeBtn.setForeground(Color.WHITE);
+        closeBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        closeBtn.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                inputDialog.dispose();
+            }
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent e) {
+                closeBtn.setForeground(new Color(255, 200, 200));
+            }
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent e) {
+                closeBtn.setForeground(Color.WHITE);
+            }
+        });
+        headerPanel.add(closeBtn, BorderLayout.EAST);
+        
+        mainContainer.add(headerPanel, BorderLayout.NORTH);
+        
+        // Content panel
         JPanel contentPanel = new JPanel(new GridBagLayout());
-        contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        contentPanel.setBackground(new Color(245, 242, 233));
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(35, 45, 35, 45));
+        contentPanel.setBackground(new Color(240, 237, 230));
         
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
-        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.insets = new Insets(8, 0, 5, 0);
         gbc.anchor = GridBagConstraints.WEST;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         
         // Date input
         JLabel dateLabel = new JLabel("Date (DD/MM/YYYY):");
-        dateLabel.setFont(new Font("SansSerif", Font.BOLD, 14));
+        dateLabel.setFont(new Font("Arial", Font.BOLD, 15));
+        dateLabel.setForeground(new Color(45, 45, 45));
         contentPanel.add(dateLabel, gbc);
         
         gbc.gridy++;
+        gbc.insets = new Insets(0, 0, 20, 0);
         JTextField dateField = new JTextField(java.time.LocalDate.now()
                 .format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")));
-        dateField.setFont(new Font("SansSerif", Font.PLAIN, 14));
-        dateField.setPreferredSize(new Dimension(200, 35));
+        dateField.setFont(new Font("Arial", Font.PLAIN, 15));
+        dateField.setPreferredSize(new Dimension(350, 42));
+        dateField.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(180, 180, 180), 2),
+            new EmptyBorder(8, 12, 8, 12)
+        ));
+        dateField.setBackground(Color.WHITE);
         contentPanel.add(dateField, gbc);
         
         // Start time input
         gbc.gridy++;
+        gbc.insets = new Insets(8, 0, 5, 0);
         JLabel startLabel = new JLabel("Start Time (HH:MM):");
-        startLabel.setFont(new Font("SansSerif", Font.BOLD, 14));
+        startLabel.setFont(new Font("Arial", Font.BOLD, 15));
+        startLabel.setForeground(new Color(45, 45, 45));
         contentPanel.add(startLabel, gbc);
         
         gbc.gridy++;
+        gbc.insets = new Insets(0, 0, 20, 0);
         JTextField startField = new JTextField("09:00");
-        startField.setFont(new Font("SansSerif", Font.PLAIN, 14));
-        startField.setPreferredSize(new Dimension(200, 35));
+        startField.setFont(new Font("Arial", Font.PLAIN, 15));
+        startField.setPreferredSize(new Dimension(350, 42));
+        startField.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(180, 180, 180), 2),
+            new EmptyBorder(8, 12, 8, 12)
+        ));
+        startField.setBackground(Color.WHITE);
         contentPanel.add(startField, gbc);
         
         // End time input
         gbc.gridy++;
+        gbc.insets = new Insets(8, 0, 5, 0);
         JLabel endLabel = new JLabel("End Time (HH:MM):");
-        endLabel.setFont(new Font("SansSerif", Font.BOLD, 14));
+        endLabel.setFont(new Font("Arial", Font.BOLD, 15));
+        endLabel.setForeground(new Color(45, 45, 45));
         contentPanel.add(endLabel, gbc);
         
         gbc.gridy++;
+        gbc.insets = new Insets(0, 0, 30, 0);
         JTextField endField = new JTextField("10:00");
-        endField.setFont(new Font("SansSerif", Font.PLAIN, 14));
-        endField.setPreferredSize(new Dimension(200, 35));
+        endField.setFont(new Font("Arial", Font.PLAIN, 15));
+        endField.setPreferredSize(new Dimension(350, 42));
+        endField.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(180, 180, 180), 2),
+            new EmptyBorder(8, 12, 8, 12)
+        ));
+        endField.setBackground(Color.WHITE);
         contentPanel.add(endField, gbc);
         
         // Buttons
         gbc.gridy++;
-        gbc.insets = new Insets(20, 10, 10, 10);
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
-        buttonPanel.setBackground(new Color(245, 242, 233));
+        gbc.insets = new Insets(10, 0, 0, 0);
+        gbc.anchor = GridBagConstraints.CENTER;
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 0));
+        buttonPanel.setBackground(new Color(240, 237, 230));
         
-        JButton generateBtn = new JButton("Generate");
-        generateBtn.setFont(new Font("SansSerif", Font.BOLD, 14));
-        generateBtn.setBackground(new Color(198, 174, 92));
-        generateBtn.setForeground(Color.BLACK);
+        JButton generateBtn = new JButton("Generate") {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                if (getModel().isPressed()) {
+                    g2d.setColor(new Color(168, 146, 72));
+                } else if (getModel().isRollover()) {
+                    g2d.setColor(new Color(208, 184, 102));
+                } else {
+                    g2d.setColor(new Color(198, 174, 92));
+                }
+                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
+                
+                g2d.setColor(getForeground());
+                g2d.setFont(getFont());
+                FontMetrics fm = g2d.getFontMetrics();
+                int x = (getWidth() - fm.stringWidth(getText())) / 2;
+                int y = ((getHeight() - fm.getHeight()) / 2) + fm.getAscent();
+                g2d.drawString(getText(), x, y);
+            }
+        };
+        generateBtn.setFont(new Font("Arial", Font.BOLD, 15));
+        generateBtn.setForeground(Color.WHITE);
         generateBtn.setFocusPainted(false);
+        generateBtn.setBorderPainted(false);
+        generateBtn.setContentAreaFilled(false);
         generateBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        generateBtn.setPreferredSize(new Dimension(120, 40));
+        generateBtn.setPreferredSize(new Dimension(140, 45));
         
         generateBtn.addActionListener(e -> {
             String date = dateField.getText().trim();
@@ -349,20 +487,45 @@ public class TeacherAttendanceOptionView extends JPanel {
             showGeneratedCode(password, date, startTime, endTime);
         });
         
-        JButton cancelBtn = new JButton("Cancel");
-        cancelBtn.setFont(new Font("SansSerif", Font.BOLD, 14));
-        cancelBtn.setBackground(new Color(190, 190, 190));
-        cancelBtn.setForeground(Color.BLACK);
+        JButton cancelBtn = new JButton("Cancel") {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                if (getModel().isPressed()) {
+                    g2d.setColor(new Color(160, 160, 160));
+                } else if (getModel().isRollover()) {
+                    g2d.setColor(new Color(210, 210, 210));
+                } else {
+                    g2d.setColor(new Color(190, 190, 190));
+                }
+                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
+                
+                g2d.setColor(getForeground());
+                g2d.setFont(getFont());
+                FontMetrics fm = g2d.getFontMetrics();
+                int x = (getWidth() - fm.stringWidth(getText())) / 2;
+                int y = ((getHeight() - fm.getHeight()) / 2) + fm.getAscent();
+                g2d.drawString(getText(), x, y);
+            }
+        };
+        cancelBtn.setFont(new Font("Arial", Font.BOLD, 15));
+        cancelBtn.setForeground(new Color(60, 60, 60));
         cancelBtn.setFocusPainted(false);
+        cancelBtn.setBorderPainted(false);
+        cancelBtn.setContentAreaFilled(false);
         cancelBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        cancelBtn.setPreferredSize(new Dimension(100, 40));
+        cancelBtn.setPreferredSize(new Dimension(110, 45));
         cancelBtn.addActionListener(e -> inputDialog.dispose());
         
         buttonPanel.add(generateBtn);
         buttonPanel.add(cancelBtn);
         contentPanel.add(buttonPanel, gbc);
         
-        inputDialog.add(contentPanel);
+        mainContainer.add(contentPanel, BorderLayout.CENTER);
+        
+        inputDialog.add(mainContainer);
         inputDialog.setVisible(true);
     }
 

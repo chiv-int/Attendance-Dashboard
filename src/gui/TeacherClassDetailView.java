@@ -12,6 +12,8 @@ public class TeacherClassDetailView extends JPanel {
     private JLabel titleLabel;
     private String currentCourseCode;
     private String currentCourseName;
+    private JLabel homeButton;
+    private JLabel classesButton;
 
     public TeacherClassDetailView(MainFrame mainFrame) {
         this.mainFrame = mainFrame;
@@ -120,30 +122,10 @@ public class TeacherClassDetailView extends JPanel {
         JPanel centerSection = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
         centerSection.setOpaque(false);
 
-        JLabel homeButton = new JLabel("Home");
-        homeButton.setFont(new Font("Arial", Font.BOLD, 13));
-        homeButton.setForeground(Color.WHITE);
-        homeButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        homeButton.addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override
-            public void mouseClicked(java.awt.event.MouseEvent e) {
-                mainFrame.backToTeacherDashboard();
-            }
-            @Override
-            public void mouseEntered(java.awt.event.MouseEvent e) {
-                homeButton.setForeground(new Color(168, 126, 79));
-            }
-            @Override
-            public void mouseExited(java.awt.event.MouseEvent e) {
-                homeButton.setForeground(Color.WHITE);
-            }
-        });
+        homeButton = createNavButton("Home", false);
         centerSection.add(homeButton);
 
-        JLabel classesButton = new JLabel("Classes");
-        classesButton.setFont(new Font("Arial", Font.BOLD, 13));
-        classesButton.setForeground(new Color(150, 150, 150));
-        classesButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        classesButton = createNavButton("Classes", true);
         centerSection.add(classesButton);
 
         headerPanel.add(centerSection, BorderLayout.CENTER);
@@ -184,6 +166,60 @@ public class TeacherClassDetailView extends JPanel {
         headerPanel.add(rightSection, BorderLayout.EAST);
 
         return headerPanel;
+    }
+
+    private JLabel createNavButton(String text, boolean isActive) {
+        JLabel label = new JLabel(text) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                if (isActive()) {
+                    Graphics2D g2d = (Graphics2D) g;
+                    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2d.setColor(new Color(168, 126, 79, 20));
+                    g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 4, 4);
+
+                    g2d.setColor(new Color(168, 126, 79));
+                    g2d.setStroke(new BasicStroke(2));
+                    g2d.drawLine(0, getHeight() - 3, getWidth(), getHeight() - 3);
+                }
+                super.paintComponent(g);
+            }
+
+            private boolean isActive() {
+                return getText().equals("Classes");
+            }
+        };
+
+        label.setFont(new Font("Arial", Font.BOLD, 13));
+        label.setForeground(isActive ? new Color(168, 126, 79) : new Color(176, 176, 176));
+        label.setPreferredSize(new Dimension(80, 40));
+        label.setHorizontalAlignment(SwingConstants.CENTER);
+        label.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        label.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent e) {
+                label.setForeground(new Color(168, 126, 79));
+            }
+
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent e) {
+                if (label == classesButton) {
+                    label.setForeground(new Color(168, 126, 79));
+                } else {
+                    label.setForeground(new Color(176, 176, 176));
+                }
+            }
+
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (label == homeButton) {
+                    mainFrame.backToTeacherDashboard();
+                }
+            }
+        });
+
+        return label;
     }
 
     private void handleLogout() {
