@@ -1,5 +1,6 @@
 
 import java.util.*;
+import models.*;
 
 public class TeacherService {
     private final Map<String, Course> courses;

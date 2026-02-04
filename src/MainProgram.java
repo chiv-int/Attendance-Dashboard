@@ -1,5 +1,6 @@
 
 import java.util.*;
+import models.*;
 
 class MainProgram {
     public static void main(String[] args) {
