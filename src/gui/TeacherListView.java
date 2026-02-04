@@ -99,68 +99,93 @@ public class TeacherListView extends JPanel {
                 g2d.fillRect(0, 0, getWidth(), getHeight());
             }
         };
-        headerPanel.setLayout(null);
+        headerPanel.setLayout(new BorderLayout());
         headerPanel.setPreferredSize(new Dimension(0, 70));
+        headerPanel.setBorder(new EmptyBorder(15, 20, 15, 20));
 
+        // Left section: Logo and school name
+        JPanel leftSection = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        leftSection.setOpaque(false);
+        
         // Logo
         JLabel logoLabel = new JLabel();
-        ImageIcon logoIcon = new ImageIcon("C:\\Users\\M\\OneDrive\\Documents\\Year2\\Introduction to Software Engineering\\project\\Attendance-Dashboard\\src\\gui\\Logo.jpg");
-        Image scaledLogo = logoIcon.getImage().getScaledInstance(40, 40, Image.SCALE_SMOOTH);
-        logoLabel.setIcon(new ImageIcon(scaledLogo));
-        logoLabel.setBounds(20, 15, 40, 40);
-        headerPanel.add(logoLabel);
+        try {
+            ImageIcon logoIcon = new ImageIcon("C:\\Users\\M\\OneDrive\\Documents\\Year2\\Introduction to Software Engineering\\project\\Attendance-Dashboard\\src\\gui\\Logo.jpg");
+            Image scaledLogo = logoIcon.getImage().getScaledInstance(40, 40, Image.SCALE_SMOOTH);
+            logoLabel.setIcon(new ImageIcon(scaledLogo));
+        } catch (Exception e) {
+            logoLabel.setText("Logo");
+        }
+        leftSection.add(logoLabel);
 
         // School name
         JLabel schoolNameLabel = new JLabel("The Valley University");
         schoolNameLabel.setFont(new Font("Arial", Font.BOLD, 16));
         schoolNameLabel.setForeground(Color.WHITE);
-        schoolNameLabel.setBounds(70, 15, 250, 40);
-        headerPanel.add(schoolNameLabel);
+        leftSection.add(schoolNameLabel);
+        
+        headerPanel.add(leftSection, BorderLayout.WEST);
 
+        // Center section: Navigation
+        JPanel centerSection = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
+        centerSection.setOpaque(false);
+        
         // Navigation - Home button
         JLabel homeButton = new JLabel("Home");
         homeButton.setFont(new Font("Arial", Font.BOLD, 13));
         homeButton.setForeground(Color.WHITE);
-        homeButton.setHorizontalAlignment(SwingConstants.CENTER);
         homeButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        homeButton.setBounds(480, 15, 80, 40);
         homeButton.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseClicked(java.awt.event.MouseEvent e) {
                 mainFrame.backToTeacherDashboard();
             }
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent e) {
+                homeButton.setForeground(new Color(168, 126, 79));
+            }
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent e) {
+                homeButton.setForeground(Color.WHITE);
+            }
         });
-        headerPanel.add(homeButton);
+        centerSection.add(homeButton);
 
         // Navigation - Classes button
         JLabel classesButton = new JLabel("Classes");
         classesButton.setFont(new Font("Arial", Font.BOLD, 13));
         classesButton.setForeground(new Color(150, 150, 150)); // Grayed out
-        classesButton.setHorizontalAlignment(SwingConstants.CENTER);
         classesButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        classesButton.setBounds(580, 15, 80, 40);
-        headerPanel.add(classesButton);
+        centerSection.add(classesButton);
+        
+        headerPanel.add(centerSection, BorderLayout.CENTER);
 
-        // User info panel
-        JPanel userPanel = new JPanel();
-        userPanel.setLayout(null);
-        userPanel.setOpaque(false);
-        userPanel.setBounds(getWidth() - 250, 10, 240, 50);
-
+        // Right section: User info panel
+        JPanel rightSection = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 0));
+        rightSection.setOpaque(false);
+        
+        // User info container
+        JPanel userInfoPanel = new JPanel();
+        userInfoPanel.setLayout(new BoxLayout(userInfoPanel, BoxLayout.Y_AXIS));
+        userInfoPanel.setOpaque(false);
+        
         JLabel userNameLabel = new JLabel("Teacher");
         userNameLabel.setFont(new Font("Arial", Font.BOLD, 12));
         userNameLabel.setForeground(Color.WHITE);
-        userNameLabel.setBounds(10, 5, 120, 20);
-        userPanel.add(userNameLabel);
+        userNameLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        userInfoPanel.add(userNameLabel);
 
         JLabel userRoleLabel = new JLabel("Teacher Account");
         userRoleLabel.setFont(new Font("Arial", Font.PLAIN, 10));
         userRoleLabel.setForeground(new Color(136, 136, 136));
-        userRoleLabel.setBounds(10, 25, 120, 15);
-        userPanel.add(userRoleLabel);
+        userRoleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        userInfoPanel.add(userRoleLabel);
+        
+        rightSection.add(userInfoPanel);
 
+        // Logout button
         JButton logoutBtn = new JButton("Logout");
-        logoutBtn.setBounds(140, 10, 90, 30);
+        logoutBtn.setPreferredSize(new Dimension(90, 40));
         logoutBtn.setFont(new Font("Arial", Font.BOLD, 12));
         logoutBtn.setForeground(new Color(168, 126, 79));
         logoutBtn.setBackground(new Color(26, 26, 26));
@@ -168,9 +193,9 @@ public class TeacherListView extends JPanel {
         logoutBtn.setFocusPainted(false);
         logoutBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         logoutBtn.addActionListener(e -> handleLogout());
-        userPanel.add(logoutBtn);
+        rightSection.add(logoutBtn);
 
-        headerPanel.add(userPanel);
+        headerPanel.add(rightSection, BorderLayout.EAST);
 
         return headerPanel;
     }
