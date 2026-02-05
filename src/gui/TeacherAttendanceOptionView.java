@@ -26,19 +26,21 @@ public class TeacherAttendanceOptionView extends JPanel {
         
         initComponents();
     }
-    
+
     private void initComponents() {
         // Header with navigation
         JPanel headerPanel = createHeader();
         add(headerPanel, BorderLayout.NORTH);
-        
-        // Main content area
+
+        // Main content area - use BorderLayout with NORTH alignment
+        JPanel outerPanel = new JPanel(new BorderLayout());
+        outerPanel.setBackground(new Color(67, 79, 84));
+
         JPanel contentPanel = new JPanel();
         contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
-        contentPanel.setBackground(new Color(67, 79, 84)); // Medium dark gray
+        contentPanel.setBackground(new Color(67, 79, 84));
         contentPanel.setBorder(new EmptyBorder(10, 60, 20, 60));
-        contentPanel.setAlignmentY(Component.TOP_ALIGNMENT);
-        
+
         // Breadcrumb: Home > Course > Attendance
         breadcrumbPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         breadcrumbPanel.setOpaque(false);
@@ -63,9 +65,9 @@ public class TeacherAttendanceOptionView extends JPanel {
         breadcrumbPanel.add(attendanceLabel);
 
         contentPanel.add(breadcrumbPanel);
-        
-        contentPanel.add(Box.createRigidArea(new Dimension(0, 4)));
-        
+
+        contentPanel.add(Box.createRigidArea(new Dimension(0, 20)));
+
         // Option cards
         JPanel passwordCard = createOptionCard("Generate Password");
         passwordCard.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -76,7 +78,7 @@ public class TeacherAttendanceOptionView extends JPanel {
         });
         contentPanel.add(passwordCard);
         contentPanel.add(Box.createRigidArea(new Dimension(0, 20)));
-        
+
         JPanel listCard = createOptionCard("Attendance List");
         listCard.setAlignmentX(Component.LEFT_ALIGNMENT);
         listCard.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -86,16 +88,10 @@ public class TeacherAttendanceOptionView extends JPanel {
         });
         contentPanel.add(listCard);
 
-        contentPanel.add(Box.createVerticalGlue());
-        
-        // Wrap in scroll pane
-        JScrollPane scrollPane = new JScrollPane(contentPanel);
-        scrollPane.setBorder(null);
-        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
-        scrollPane.setBackground(new Color(67, 79, 84));
-        scrollPane.getViewport().setViewPosition(new Point(0, 0));
-        
-        add(scrollPane, BorderLayout.CENTER);
+        // Add content to NORTH of outer panel to keep it at top
+        outerPanel.add(contentPanel, BorderLayout.NORTH);
+
+        add(outerPanel, BorderLayout.CENTER);
     }
 
     private JPanel createHeader() {

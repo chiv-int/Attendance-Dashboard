@@ -91,25 +91,30 @@ public class TeacherListView extends JPanel {
 
         contentPanel.add(breadcrumbPanel, BorderLayout.NORTH);
 
-        // Search and table panel
-        JPanel mainPanel = new JPanel(new BorderLayout());
+        // Main panel with vertical layout
+        JPanel mainPanel = new JPanel();
+        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
         mainPanel.setOpaque(false);
         mainPanel.setBorder(new EmptyBorder(8, 0, 0, 0));
 
         // Search panel
         JPanel searchPanel = createSearchPanel();
-        mainPanel.add(searchPanel, BorderLayout.NORTH);
+        searchPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        searchPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60));
+        mainPanel.add(searchPanel);
 
         // Active filters panel
         activeFiltersPanel = createActiveFiltersPanel();
-        mainPanel.add(activeFiltersPanel, BorderLayout.CENTER);
+        activeFiltersPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        mainPanel.add(activeFiltersPanel);
 
-        // Table panel
+        // Small gap between search and table
+       // mainPanel.add(Box.createRigidArea(new Dimension(0, 0)));
+
+        // Table panel - takes remaining space
         JPanel tablePanel = createTablePanel();
-        JPanel tableWrapper = new JPanel(new BorderLayout());
-        tableWrapper.setOpaque(false);
-        tableWrapper.add(tablePanel, BorderLayout.CENTER);
-        mainPanel.add(tableWrapper, BorderLayout.SOUTH);
+        tablePanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        mainPanel.add(tablePanel);
 
         contentPanel.add(mainPanel, BorderLayout.CENTER);
 
@@ -318,7 +323,7 @@ public class TeacherListView extends JPanel {
     private JPanel createSearchPanel() {
         JPanel searchPanel = new JPanel(new BorderLayout(15, 10));
         searchPanel.setOpaque(false);
-        searchPanel.setBorder(new EmptyBorder(10, 0, 10, 0));
+        searchPanel.setBorder(new EmptyBorder(00, 0, 10, 0));
 
         // Left side - Search field
         JPanel searchFieldWrapper = new JPanel(new BorderLayout());
@@ -384,8 +389,6 @@ public class TeacherListView extends JPanel {
         JPanel panel = new JPanel();
         panel.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 5));
         panel.setOpaque(false);
-        panel.setPreferredSize(new Dimension(0, 50));
-
         return panel;
     }
 
@@ -505,7 +508,7 @@ public class TeacherListView extends JPanel {
     private JPanel createTablePanel() {
         JPanel tablePanel = new JPanel(new BorderLayout());
         tablePanel.setOpaque(false);
-        tablePanel.setBorder(new EmptyBorder(10, 0, 0, 0));
+        tablePanel.setBorder(new EmptyBorder(0, 0, 0, 0));
 
         // Create table with beige background
         String[] columnNames = {"No.", "Name", "Major", "Date", "Status"};

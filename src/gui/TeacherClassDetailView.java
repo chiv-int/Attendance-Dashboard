@@ -27,11 +27,15 @@ public class TeacherClassDetailView extends JPanel {
         JPanel headerPanel = createHeader();
         add(headerPanel, BorderLayout.NORTH);
 
+        // Outer panel to hold content at top
+        JPanel outerPanel = new JPanel(new BorderLayout());
+        outerPanel.setBackground(new Color(67, 79, 84));
+
         // Content
         JPanel contentPanel = new JPanel();
         contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
         contentPanel.setBackground(new Color(67, 79, 84));
-        contentPanel.setBorder(new EmptyBorder(30, 60, 30, 60));
+        contentPanel.setBorder(new EmptyBorder(0, 60, 0, 60));
 
         // Title
         breadcrumbPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
@@ -49,7 +53,7 @@ public class TeacherClassDetailView extends JPanel {
 
         contentPanel.add(breadcrumbPanel);
 
-        contentPanel.add(Box.createRigidArea(new Dimension(0, 30)));
+        contentPanel.add(Box.createRigidArea(new Dimension(0, 20)));
 
         // Option cards
         JPanel attendanceCard = createOptionCard("Attendance");
@@ -79,14 +83,12 @@ public class TeacherClassDetailView extends JPanel {
         quizCard.setAlignmentX(Component.LEFT_ALIGNMENT);
         contentPanel.add(quizCard);
 
-        // Wrap in scroll pane
-        JScrollPane scrollPane = new JScrollPane(contentPanel);
-        scrollPane.setBorder(null);
-        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
-        scrollPane.setBackground(new Color(67, 79, 84));
+        // Add content to NORTH to keep it at top
+        outerPanel.add(contentPanel, BorderLayout.NORTH);
 
-        add(scrollPane, BorderLayout.CENTER);
+        add(outerPanel, BorderLayout.CENTER);
     }
+
 
     private JPanel createHeader() {
         JPanel headerPanel = new JPanel() {
