@@ -8,10 +8,7 @@ import models.Course;
 import java.awt.*;
 import java.util.Random;
 
-/**
- * TeacherAttendanceOptionView - Options for attendance management
- * Features: Generate Password, Attendance List
- */
+
 public class TeacherAttendanceOptionView extends JPanel {
     private MainFrame mainFrame;
     private JLabel titleLabel;

@@ -18,10 +18,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-/**
- * TeacherListView - Shows attendance list with search and filter functionality
- * Enhanced with date filtering options and active filter display
- */
+
 public class TeacherListView extends JPanel {
     private MainFrame mainFrame;
     private JLabel titleLabel;

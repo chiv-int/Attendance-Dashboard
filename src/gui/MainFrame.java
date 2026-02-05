@@ -3,10 +3,7 @@ package gui;
 import javax.swing.*;
 import java.awt.*;
 
-/**
- * MainFrame - Entry point for the Attendance Dashboard GUI
- * This class manages navigation between all views
- */
+
 public class MainFrame extends JFrame {
     private CardLayout cardLayout;
     private JPanel mainPanel;
@@ -49,16 +46,12 @@ public class MainFrame extends JFrame {
         teacherListView = new TeacherListView(this);
     }
     
-    /**
-     * Navigate to a specific view
-     */
+
     public void showView(String viewName) {
         cardLayout.show(mainPanel, viewName);
     }
     
-    /**
-     * Handle login success - navigate to appropriate dashboard
-     */
+
     public void handleLoginSuccess(String userType) {
         if ("TEACHER".equals(userType)) {
             showView("TEACHER_DASHBOARD");
@@ -72,40 +65,29 @@ public class MainFrame extends JFrame {
         }
     }
     
-    /**
-     * Navigate to class detail view
-     */
+
     public void showClassDetail(String className, String courseCode) {
         teacherClassDetailView.setClassInfo(className, courseCode);
         showView("TEACHER_CLASS_DETAIL");
     }
     
-    /**
-     * Navigate to attendance option view
-     */
+
     public void showAttendanceOptions(String className, String courseCode) {
         teacherAttendanceOptionView.setClassInfo(className, courseCode);
         showView("TEACHER_ATTENDANCE_OPTION");
     }
     
-    /**
-     * Navigate to attendance list view
-     */
+
     public void showAttendanceList(String className, String courseCode) {
         teacherListView.setClassInfo(className, courseCode);
         showView("TEACHER_LIST");
     }
     
-    /**
-     * Go back to teacher dashboard
-     */
+
     public void backToTeacherDashboard() {
         showView("TEACHER_DASHBOARD");
     }
-    
-    /**
-     * Go back to class detail from attendance views
-     */
+
     public void backToClassDetail() {
         showView("TEACHER_CLASS_DETAIL");
     }

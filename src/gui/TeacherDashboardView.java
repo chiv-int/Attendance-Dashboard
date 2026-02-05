@@ -7,9 +7,7 @@ import models.Course;
 
 import java.awt.*;
 
-/**
- * TeacherDashboardView - Main dashboard for teachers with Home and Classes tabs
- */
+
 public class TeacherDashboardView extends JPanel {
     private MainFrame mainFrame;
     private CardLayout contentLayout;

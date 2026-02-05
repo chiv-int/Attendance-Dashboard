@@ -4,9 +4,7 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
-/**
- * TeacherClassDetailView - Shows details of a specific class
- */
+
 public class TeacherClassDetailView extends JPanel {
     private MainFrame mainFrame;
     private JLabel titleLabel;

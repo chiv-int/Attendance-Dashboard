@@ -4,10 +4,7 @@ import models.*;
 import dao.*;
 import java.util.*;
 
-/**
- * Singleton class to bridge GUI and backend
- * Provides centralized access to all backend services
- */
+
 public class BackendManager {
     private static BackendManager instance;
     
