@@ -11,10 +11,16 @@ public abstract class User {
     protected String email;
     protected String phone;
     
+    // Regular constructor - hashes the password
     public User(String id, String username, String password, String fullName, String email, String phone) {
+        this(id, username, password, fullName, email, phone, false);
+    }
+    
+    // Constructor with flag for already-hashed passwords (from database)
+    protected User(String id, String username, String password, String fullName, String email, String phone, boolean isPasswordHashed) {
         this.id = id;
         this.username = username;
-        this.passwordHash = hashPassword(password);
+        this.passwordHash = isPasswordHashed ? password : hashPassword(password);
         this.fullName = fullName;
         this.email = email;
         this.phone = phone;

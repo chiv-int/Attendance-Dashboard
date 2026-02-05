@@ -1,7 +1,7 @@
 package gui;
 
-import javax.swing.*;
 import java.awt.*;
+import javax.swing.*;
 
 
 public class MainFrame extends JFrame {
@@ -16,8 +16,16 @@ public class MainFrame extends JFrame {
     public MainFrame() {
         setTitle("Attendance Dashboard");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(1200, 800);
+        
+        // Responsive: 80% of screen size, minimum 1000x700
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        int width = Math.max((int)(screenSize.width * 0.8), 1000);
+        int height = Math.max((int)(screenSize.height * 0.8), 700);
+        setSize(width, height);
+        
         setLocationRelativeTo(null);
+        setExtendedState(JFrame.NORMAL);
+        setResizable(true);
         
         // Initialize CardLayout
         cardLayout = new CardLayout();

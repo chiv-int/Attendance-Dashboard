@@ -1,10 +1,10 @@
 package gui;
 
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.*;
 
 public class SchoolCourseDetailUI extends JFrame {
     private JLabel homeLabel;
@@ -296,7 +296,7 @@ public class SchoolCourseDetailUI extends JFrame {
         gbc.gridy = 0;
         gbc.weightx = 1.0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(30, 50, 0, 50);
+        gbc.insets = new Insets(30, 40, 0, 40);
 
         // Breadcrumb navigation
         JPanel breadcrumbPanel = createBreadcrumb();

@@ -39,7 +39,10 @@ public class TeacherAttendanceOptionView extends JPanel {
         JPanel contentPanel = new JPanel();
         contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
         contentPanel.setBackground(new Color(67, 79, 84));
-        contentPanel.setBorder(new EmptyBorder(10, 60, 20, 60));
+        
+        // Responsive padding
+        int horizontalPadding = Math.min(60, Math.max(20, (int)(contentPanel.getWidth() * 0.1)));
+        contentPanel.setBorder(new EmptyBorder(10, horizontalPadding, 20, horizontalPadding));
 
         // Breadcrumb: Home > Course > Attendance
         breadcrumbPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
@@ -299,7 +302,7 @@ public class TeacherAttendanceOptionView extends JPanel {
         card.setBackground(new Color(218, 209, 193)); // Beige color
         card.setBorder(BorderFactory.createLineBorder(new Color(200, 190, 175), 1));
         card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 65));
-        card.setPreferredSize(new Dimension(700, 65));
+        card.setPreferredSize(new Dimension(Integer.MAX_VALUE, 65)); // Responsive width
         card.setCursor(new Cursor(Cursor.HAND_CURSOR));
         
         JLabel titleLabel = new JLabel(title);

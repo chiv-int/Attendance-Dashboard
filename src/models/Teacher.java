@@ -9,9 +9,20 @@ public class Teacher extends User {
     private final String department;
     private final List<String> assignedCourseIds;
     
+    // Regular constructor - hashes password
     public Teacher(String userId, String username, String password,
                    String fullName, String email, String phone, String department) {
         super(userId, username, password, fullName, email, phone);
+        this.teacherId = userId;  // For backward compatibility
+        this.employeeId = userId;
+        this.department = department;
+        this.assignedCourseIds = new ArrayList<>();
+    }
+    
+    // Constructor for database loading - password already hashed
+    public Teacher(String userId, String username, String passwordHash,
+                   String fullName, String email, String phone, String department, boolean isPasswordHashed) {
+        super(userId, username, passwordHash, fullName, email, phone, isPasswordHashed);
         this.teacherId = userId;  // For backward compatibility
         this.employeeId = userId;
         this.department = department;

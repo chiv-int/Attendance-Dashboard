@@ -50,15 +50,18 @@ public class UserDao {
             
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    return new Student(
+                    Student student = new Student(
                         rs.getString("user_id"),
                         rs.getString("username"),
-                        rs.getString("password"),
+                        rs.getString("password"),  // Plain text in DB, will be hashed
                         rs.getString("full_name"),
-                        rs.getString("email"),
-                        rs.getString("phone"),
+                        rs.getString("student_id"),
+                        rs.getString("major"),
                         rs.getInt("year_level")
                     );
+                    // Load enrolled courses
+                    loadStudentEnrollments(student);
+                    return student;
                 }
             }
         } catch (SQLException e) {
@@ -66,6 +69,21 @@ public class UserDao {
             e.printStackTrace();
         }
         return null;
+    }
+    
+    private void loadStudentEnrollments(Student student) {
+        String sql = "SELECT course_id FROM course_enrollments WHERE student_id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, student.getStudentId());
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    student.enrollCourse(rs.getString("course_id"));
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("✗ Error loading student enrollments!");
+            e.printStackTrace();
+        }
     }
     public Teacher getTeacherById(String userId) {
         String sql = "SELECT u.*, t.teacher_id, t.employee_id, t.department " +
@@ -77,15 +95,19 @@ public class UserDao {
             
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    return new Teacher(
+                    Teacher teacher = new Teacher(
                         rs.getString("user_id"),
                         rs.getString("username"),
-                        rs.getString("password"),
+                        rs.getString("password"),  // Plain text in DB, will be hashed
                         rs.getString("full_name"),
-                        rs.getString("email"),
-                        rs.getString("phone"),
+                        "",  // email - not in database
+                        "",  // phone - not in database
                         rs.getString("department")
                     );
+                    teacher.setTeacherId(rs.getString("teacher_id"));
+                    // Load assigned courses
+                    loadTeacherCourses(teacher);
+                    return teacher;
                 }
             }
         } catch (SQLException e) {
@@ -93,6 +115,21 @@ public class UserDao {
             e.printStackTrace();
         }
         return null;
+    }
+    
+    private void loadTeacherCourses(Teacher teacher) {
+        String sql = "SELECT course_id FROM courses WHERE teacher_id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, teacher.getTeacherId());
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    teacher.assignCourse(rs.getString("course_id"));
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("✗ Error loading teacher courses!");
+            e.printStackTrace();
+        }
     }
     public boolean saveUser(User user) {
         String sql = "INSERT INTO users (user_id, username, password, full_name, email, phone, role) VALUES (?, ?, ?, ?, ?, ?, ?)";
@@ -203,20 +240,56 @@ public class UserDao {
              ResultSet rs = stmt.executeQuery(sql)) {
             
             while (rs.next()) {
-                students.add(new Student(
+                Student student = new Student(
                     rs.getString("user_id"),
                     rs.getString("username"),
-                    rs.getString("password"),
+                    rs.getString("password"),  // Plain text in DB, will be hashed
                     rs.getString("full_name"),
-                    rs.getString("email"),
-                    rs.getString("phone"),
+                    rs.getString("student_id"),
+                    rs.getString("major"),
                     rs.getInt("year_level")
-                ));
+                );
+                loadStudentEnrollments(student);
+                students.add(student);
             }
         } catch (SQLException e) {
             System.err.println("✗ Error retrieving students!");
             e.printStackTrace();
         }
         return students;
+    }
+    
+    public List<Teacher> getAllTeachers() {
+        List<Teacher> teachers = new ArrayList<>();
+        String sql = "SELECT u.*, t.teacher_id, t.employee_id, t.department " +
+                    "FROM users u JOIN teachers t ON u.user_id = t.user_id";
+        
+        try (Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            
+            while (rs.next()) {
+                try {
+                    Teacher teacher = new Teacher(
+                        rs.getString("user_id"),
+                        rs.getString("username"),
+                        rs.getString("password"),  // Plain text in DB, will be hashed
+                        rs.getString("full_name"),
+                        "",  // email - not in database
+                        "",  // phone - not in database
+                        rs.getString("department")
+                    );
+                    teacher.setTeacherId(rs.getString("teacher_id"));
+                    loadTeacherCourses(teacher);
+                    teachers.add(teacher);
+                } catch (Exception e) {
+                    System.err.println("✗ Error loading teacher: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("✗ Error retrieving teachers!");
+            e.printStackTrace();
+        }
+        return teachers;
     }
 }

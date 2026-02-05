@@ -60,7 +60,10 @@ public class TeacherListView extends JPanel {
         // Main content
         JPanel contentPanel = new JPanel(new BorderLayout());
         contentPanel.setBackground(new Color(67, 79, 84)); // Medium dark gray
-        contentPanel.setBorder(new EmptyBorder(10, 60, 20, 60));
+        
+        // Responsive padding
+        int horizontalPadding = Math.min(60, Math.max(20, (int)(contentPanel.getWidth() * 0.1)));
+        contentPanel.setBorder(new EmptyBorder(10, horizontalPadding, 20, horizontalPadding));
 
         // Breadcrumb
         breadcrumbPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
@@ -535,12 +538,14 @@ public class TeacherListView extends JPanel {
         attendanceTable.getTableHeader().setForeground(Color.BLACK);
         attendanceTable.getTableHeader().setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.BLACK));
 
-        // Set column widths
-        attendanceTable.getColumnModel().getColumn(0).setPreferredWidth(50);  // No.
-        attendanceTable.getColumnModel().getColumn(1).setPreferredWidth(200); // Name
-        attendanceTable.getColumnModel().getColumn(2).setPreferredWidth(150); // Major
-        attendanceTable.getColumnModel().getColumn(3).setPreferredWidth(120); // Date
-        attendanceTable.getColumnModel().getColumn(4).setPreferredWidth(100); // Status
+        // Set column widths - responsive
+        // Use percentage-based approach
+        int totalWidth = attendanceTable.getWidth() > 0 ? attendanceTable.getWidth() : 800;
+        attendanceTable.getColumnModel().getColumn(0).setPreferredWidth((int)(totalWidth * 0.08));  // No. (8%)
+        attendanceTable.getColumnModel().getColumn(1).setPreferredWidth((int)(totalWidth * 0.25)); // Name (25%)
+        attendanceTable.getColumnModel().getColumn(2).setPreferredWidth((int)(totalWidth * 0.20)); // Major (20%)
+        attendanceTable.getColumnModel().getColumn(3).setPreferredWidth((int)(totalWidth * 0.20)); // Date (20%)
+        attendanceTable.getColumnModel().getColumn(4).setPreferredWidth((int)(totalWidth * 0.15)); // Status (15%)
 
         // Add table sorter
         sorter = new TableRowSorter<>(tableModel);

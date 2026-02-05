@@ -1,11 +1,11 @@
 package gui;
 
-import javax.swing.*;
-import models.Course;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.ArrayList;
 import java.util.List;
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import models.Course;
 
 public class SchoolHomeUI extends JFrame {
     private JLabel homeLabel;
@@ -198,7 +198,7 @@ public class SchoolHomeUI extends JFrame {
         contentPanel = new JPanel();
         contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
         contentPanel.setBackground(new Color(78, 129, 136));
-        contentPanel.setBorder(BorderFactory.createEmptyBorder(30, 40, 30, 40));
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
 
         // Welcome section
         JPanel welcomePanel = new JPanel() {
@@ -244,7 +244,15 @@ public class SchoolHomeUI extends JFrame {
         if (userCourses != null && !userCourses.isEmpty()) {
             for (Course course : userCourses) {
                 JPanel classCard = createResponsiveClassCard(course.getCourseName(), course.getCourseCode() != null ? course.getCourseCode() : "Course");
-                classCard.setAlignmentX(Component.LEFT_ALIGNMENT);
+                
+                // Wrap card in a container to control width
+                JPanel cardWrapper = new JPanel();
+                cardWrapper.setLayout(new BoxLayout(cardWrapper, BoxLayout.X_AXIS));
+                cardWrapper.setOpaque(false);
+                cardWrapper.setMaximumSize(new Dimension(Integer.MAX_VALUE, 100));
+                cardWrapper.setAlignmentX(Component.LEFT_ALIGNMENT);
+                cardWrapper.add(classCard);
+                cardWrapper.add(Box.createHorizontalGlue());
                 
                 final String courseName = course.getCourseName();
                 classCard.addMouseListener(new MouseAdapter() {
@@ -255,7 +263,7 @@ public class SchoolHomeUI extends JFrame {
                         courseDetailUI.setVisible(true);
                     }
                 });
-                contentPanel.add(classCard);
+                contentPanel.add(cardWrapper);
                 contentPanel.add(Box.createRigidArea(new Dimension(0, 15)));
             }
         } else {
@@ -268,7 +276,15 @@ public class SchoolHomeUI extends JFrame {
             };
             for (String[] courseData : courses) {
                 JPanel classCard = createResponsiveClassCard(courseData[1], courseData[0]);
-                classCard.setAlignmentX(Component.LEFT_ALIGNMENT);
+                
+                // Wrap card in a container to control width
+                JPanel cardWrapper = new JPanel();
+                cardWrapper.setLayout(new BoxLayout(cardWrapper, BoxLayout.X_AXIS));
+                cardWrapper.setOpaque(false);
+                cardWrapper.setMaximumSize(new Dimension(Integer.MAX_VALUE, 100));
+                cardWrapper.setAlignmentX(Component.LEFT_ALIGNMENT);
+                cardWrapper.add(classCard);
+                cardWrapper.add(Box.createHorizontalGlue());
                 
                 final String courseName = courseData[1];
                 classCard.addMouseListener(new MouseAdapter() {
@@ -279,7 +295,7 @@ public class SchoolHomeUI extends JFrame {
                         courseDetailUI.setVisible(true);
                     }
                 });
-                contentPanel.add(classCard);
+                contentPanel.add(cardWrapper);
                 contentPanel.add(Box.createRigidArea(new Dimension(0, 15)));
             }
         }
@@ -307,32 +323,28 @@ public class SchoolHomeUI extends JFrame {
                 g2d.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 15, 15);
             }
         };
-        card.setLayout(new BorderLayout(20, 0));
+        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
         card.setOpaque(false);
-        card.setBackground(new Color(245, 242, 233));
+        card.setBorder(new EmptyBorder(20, 25, 20, 25));
         card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 100));
-        card.setPreferredSize(new Dimension(Integer.MAX_VALUE, 100));
+        card.setAlignmentX(Component.LEFT_ALIGNMENT);
         card.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        card.setBorder(BorderFactory.createEmptyBorder(15, 25, 15, 25));
 
-        // Left side: Course code
+        // Course code
         JLabel courseCodeLabel = new JLabel(courseCode);
-        courseCodeLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        courseCodeLabel.setFont(new Font("Arial", Font.BOLD, 18));
         courseCodeLabel.setForeground(new Color(168, 126, 79));
-        card.add(courseCodeLabel, BorderLayout.WEST);
+        courseCodeLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        card.add(courseCodeLabel);
 
-        // Center: Course name
-        JPanel centerPanel = new JPanel();
-        centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
-        centerPanel.setOpaque(false);
+        card.add(Box.createRigidArea(new Dimension(0, 10)));
 
+        // Course name
         JLabel courseNameLabel = new JLabel(courseName);
-        courseNameLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        courseNameLabel.setFont(new Font("Arial", Font.PLAIN, 13));
         courseNameLabel.setForeground(new Color(60, 60, 60));
-        courseNameLabel.setAlignmentY(Component.CENTER_ALIGNMENT);
-        centerPanel.add(courseNameLabel);
-
-        card.add(centerPanel, BorderLayout.CENTER);
+        courseNameLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        card.add(courseNameLabel);
 
         // Add hover effect
         card.addMouseListener(new MouseAdapter() {

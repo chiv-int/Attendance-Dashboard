@@ -1,8 +1,8 @@
 package gui;
 
-import models.*;
 import dao.*;
 import java.util.*;
+import models.*;
 
 
 public class BackendManager {
@@ -49,67 +49,75 @@ public class BackendManager {
             this.attendanceDao = null;
         }
         
-        // Initialize sample data (same as AttendanceDashboard)
-        initializeSampleData();
+        // Load data from database
+        loadDataFromDatabase();
     }
     
-    private void initializeSampleData() {
-        // Create students
-        Student student1 = new Student("U001", "student1", "pass123",
-                "Chiv Intera", "S001", "Software Engineering", 3);
-        Student student2 = new Student("U002", "student2", "pass123",
-                "Song Phengroth", "S002", "Software Engineering", 2);
-
-        students.put(student1.getStudentId(), student1);
-        students.put(student2.getStudentId(), student2);
-        users.put(student1.getUsername(), student1);
-        users.put(student2.getUsername(), student2);
-
-        // Create teacher
-        Teacher teacher1 = new Teacher("U003", "teacher1", "pass123",
-                "Dr. Sarah Williams", "T001",
-                "Computer Science", "Data Structures");
-        teacher1.setTeacherId("T001");
-
-        teachers.put(teacher1.getTeacherId(), teacher1);
-        users.put(teacher1.getUsername(), teacher1);
-
-        // Create courses
-        Course course1 = new Course("C001", "CS301", "Data Structures & Algorithms",
-                "T001", "Mon/Wed 10:00 AM", 4);
-        Course course2 = new Course("C002", "CS402", "Machine Learning",
-                "T001", "Tue/Thu 2:00 PM", 4);
-        Course course3 = new Course("C003", "CS205", "Database Systems",
-                "T001", "Mon/Wed/Fri 1:00 PM", 3);
-        Course course4 = new Course("C004", "CS101", "Introduction to Software Engineering",
-                "T001", "Mon/Wed 9:00 AM", 3);
-
-        courses.put(course1.getCourseId(), course1);
-        courses.put(course2.getCourseId(), course2);
-        courses.put(course3.getCourseId(), course3);
-        courses.put(course4.getCourseId(), course4);
-
-        // Enroll students
-        for (Course course : courses.values()) {
-            course.enrollStudent(student1.getStudentId());
-            course.enrollStudent(student2.getStudentId());
-            student1.enrollCourse(course.getCourseId());
-            student2.enrollCourse(course.getCourseId());
-        }
-
-        // Assign courses to teacher
-        for (Course course : courses.values()) {
-            teacher1.assignCourse(course.getCourseId());
+    private void loadDataFromDatabase() {
+        try {
+            UserDao userDao = new UserDao();
+            CourseDao courseDao = new CourseDao();
+            
+            // Load students from database
+            List<Student> dbStudents = userDao.getAllStudents();
+            System.out.println("✓ Loaded " + dbStudents.size() + " students from database");
+            for (Student student : dbStudents) {
+                students.put(student.getStudentId(), student);
+                users.put(student.getUsername(), student);
+                System.out.println("  - Student: " + student.getUsername() + " (ID: " + student.getStudentId() + ")");
+            }
+            
+            // Load teachers from database
+            List<Teacher> dbTeachers = userDao.getAllTeachers();
+            System.out.println("✓ Loaded " + dbTeachers.size() + " teachers from database");
+            for (Teacher teacher : dbTeachers) {
+                teachers.put(teacher.getTeacherId(), teacher);
+                users.put(teacher.getUsername(), teacher);
+                System.out.println("  - Teacher: " + teacher.getUsername() + " (ID: " + teacher.getTeacherId() + ")");
+            }
+            
+            // Load courses from database
+            List<Course> dbCourses = courseDao.getAllCourses();
+            System.out.println("✓ Loaded " + dbCourses.size() + " courses from database");
+            for (Course course : dbCourses) {
+                courses.put(course.getCourseId(), course);
+            }
+            
+            System.out.println("✓ All data loaded from database successfully!");
+            System.out.println("  - Students: " + students.size());
+            System.out.println("  - Teachers: " + teachers.size());
+            System.out.println("  - Courses: " + courses.size());
+            System.out.println("  - Total users: " + users.size());
+            
+        } catch (Exception e) {
+            System.err.println("✗ Error loading data from database: " + e.getMessage());
+            e.printStackTrace();
+            System.err.println("⚠ Warning: Backend initialized with empty data");
         }
     }
     
     // Authentication methods
     public boolean login(String username, String password) {
+        System.out.println("=== LOGIN ATTEMPT ===");
+        System.out.println("Username: " + username);
+        System.out.println("Total users in memory: " + users.size());
+        System.out.println("Available usernames: " + users.keySet());
+        
         User user = users.get(username);
-        if (user != null && user.verifyPassword(password)) {
-            currentUser = user;
-            return true;
+        System.out.println("User found: " + (user != null));
+        
+        if (user != null) {
+            System.out.println("User type: " + user.getClass().getSimpleName());
+            boolean passwordMatch = user.verifyPassword(password);
+            System.out.println("Password match: " + passwordMatch);
+            
+            if (passwordMatch) {
+                currentUser = user;
+                System.out.println("✓ Login successful!");
+                return true;
+            }
         }
+        System.out.println("✗ Login failed!");
         return false;
     }
     
@@ -256,7 +264,24 @@ public class BackendManager {
     }
     
     public AttendanceRecord getStudentAttendanceForCourse(String courseId, String studentId) {
+        // First check database for real attendance record
+        if (attendanceDao != null) {
+            AttendanceRecord dbRecord = attendanceDao.getAttendanceRecord(courseId, studentId);
+            if (dbRecord != null) {
+                return dbRecord;
+            }
+        }
+        // Fall back to in-memory if database query fails
         return attendanceManager.findAttendanceRecord(courseId, studentId);
+    }
+    
+    public List<AttendanceRecord> getAllAttendanceForCourse(String courseId) {
+        // Get all attendance records from database for this course
+        if (attendanceDao != null) {
+            return attendanceDao.getAttendanceByCourse(courseId);
+        }
+        // Fall back to in-memory if database query fails
+        return attendanceManager.getCourseAttendance(courseId);
     }
     
     public List<AttendanceRecord> getFilteredAttendance(String courseId,

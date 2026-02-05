@@ -294,7 +294,15 @@ public class TeacherDashboardView extends JPanel {
                     course.getCourseCode(),
                     course.getCourseName()
             );
-            classCard.setAlignmentX(Component.LEFT_ALIGNMENT);
+            
+            // Wrap card in a container to control width
+            JPanel cardWrapper = new JPanel();
+            cardWrapper.setLayout(new BoxLayout(cardWrapper, BoxLayout.X_AXIS));
+            cardWrapper.setOpaque(false);
+            cardWrapper.setMaximumSize(new Dimension(Integer.MAX_VALUE, 100));
+            cardWrapper.setAlignmentX(Component.LEFT_ALIGNMENT);
+            cardWrapper.add(classCard);
+            cardWrapper.add(Box.createHorizontalGlue());
 
             classCard.addMouseListener(new java.awt.event.MouseAdapter() {
                 @Override
@@ -306,7 +314,7 @@ public class TeacherDashboardView extends JPanel {
                 }
             });
 
-            homeContentPanel.add(classCard);
+            homeContentPanel.add(cardWrapper);
             homeContentPanel.add(Box.createRigidArea(new Dimension(0, 20)));
         }
 
@@ -368,7 +376,15 @@ public class TeacherDashboardView extends JPanel {
                     course.getCourseCode(),
                     course.getCourseName()
             );
-            classCard.setAlignmentX(Component.LEFT_ALIGNMENT);
+            
+            // Wrap card in a container to control width
+            JPanel cardWrapper = new JPanel();
+            cardWrapper.setLayout(new BoxLayout(cardWrapper, BoxLayout.X_AXIS));
+            cardWrapper.setOpaque(false);
+            cardWrapper.setMaximumSize(new Dimension(Integer.MAX_VALUE, 100));
+            cardWrapper.setAlignmentX(Component.LEFT_ALIGNMENT);
+            cardWrapper.add(classCard);
+            cardWrapper.add(Box.createHorizontalGlue());
 
             classCard.addMouseListener(new java.awt.event.MouseAdapter() {
                 @Override
@@ -380,7 +396,7 @@ public class TeacherDashboardView extends JPanel {
                 }
             });
 
-            container.add(classCard);
+            container.add(cardWrapper);
             container.add(Box.createRigidArea(new Dimension(0, 20)));
         }
     }
@@ -389,7 +405,10 @@ public class TeacherDashboardView extends JPanel {
         JPanel contentPanel = new JPanel();
         contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
         contentPanel.setBackground(new Color(67, 79, 84));
-        contentPanel.setBorder(new EmptyBorder(10, 60, 20, 60));
+        
+        // Responsive padding: scales with window width
+        int horizontalPadding = Math.min(60, Math.max(20, (int)(contentPanel.getWidth() * 0.1)));
+        contentPanel.setBorder(new EmptyBorder(10, horizontalPadding, 20, horizontalPadding));
         contentPanel.setAlignmentY(Component.TOP_ALIGNMENT);
 
         JPanel breadcrumbPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
@@ -485,8 +504,8 @@ public class TeacherDashboardView extends JPanel {
         JPanel card = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 18));
         card.setBackground(new Color(218, 209, 193));
         card.setBorder(BorderFactory.createLineBorder(new Color(200, 190, 175), 1));
-        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 65));
-        card.setPreferredSize(new Dimension(700, 65));
+        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 65)); // Responsive width
+        card.setPreferredSize(new Dimension(Integer.MAX_VALUE, 65)); // Fills available width
         card.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         JLabel titleLabel = new JLabel(title);
@@ -524,7 +543,7 @@ public class TeacherDashboardView extends JPanel {
         card.setOpaque(false);
         card.setBorder(new EmptyBorder(20, 25, 20, 25));
         card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 100));
-        card.setPreferredSize(new Dimension(1100, 100));
+        card.setAlignmentX(Component.LEFT_ALIGNMENT);
         card.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         // Course code

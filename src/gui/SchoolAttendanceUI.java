@@ -1,13 +1,11 @@
 package gui;
 
+import java.awt.*;
+import java.awt.event.*;
 import javax.swing.*;
-
 import models.AttendanceRecord;
 import models.Course;
 import models.Student;
-
-import java.awt.*;
-import java.awt.event.*;
 
 public class SchoolAttendanceUI extends JFrame {
     private JLabel homeLabel;
@@ -329,7 +327,7 @@ public class SchoolAttendanceUI extends JFrame {
 
         gbc.gridx = 0;
         gbc.gridy = 0;
-        gbc.insets = new Insets(30, 50, 30, 50);
+        gbc.insets = new Insets(30, 40, 30, 40);
         gbc.anchor = GridBagConstraints.NORTHWEST;
         gbc.weightx = 1.0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -351,7 +349,7 @@ public class SchoolAttendanceUI extends JFrame {
         formPanel.setOpaque(false);
 
         GridBagConstraints formGbc = new GridBagConstraints();
-        formGbc.insets = new Insets(30, 60, 30, 60);
+        formGbc.insets = new Insets(30, 40, 30, 40);
 
         // Password label and field
         JLabel passwordLabel = new JLabel("Password:");
@@ -416,9 +414,9 @@ public class SchoolAttendanceUI extends JFrame {
         // Submit button below form
         JButton submitBtn = new JButton("Submit");
         submitBtn.setFont(new Font("Arial", Font.BOLD, 16));
-        submitBtn.setBackground(new Color(168, 126, 79));
+        submitBtn.setBackground(new Color(0, 102, 204));
         submitBtn.setForeground(Color.WHITE);
-        submitBtn.setBorder(BorderFactory.createLineBorder(new Color(168, 126, 79), 1));
+        submitBtn.setBorder(BorderFactory.createLineBorder(new Color(0, 102, 204), 1));
         submitBtn.setFocusPainted(false);
         submitBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         submitBtn.setPreferredSize(new Dimension(140, 50));
@@ -429,7 +427,7 @@ public class SchoolAttendanceUI extends JFrame {
         gbc.weighty = 0;
         gbc.fill = GridBagConstraints.NONE;
         gbc.anchor = GridBagConstraints.SOUTHEAST;
-        gbc.insets = new Insets(0, 0, 30, 50);
+        gbc.insets = new Insets(0, 0, 30, 40);
         wrapperPanel.add(submitBtn, gbc);
 
         return wrapperPanel;

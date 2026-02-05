@@ -230,4 +230,34 @@ public class CourseDao {
         }
         return false;
     }
+    
+    public List<Course> getAllCourses() {
+        List<Course> courses = new ArrayList<>();
+        String sql = "SELECT * FROM courses";
+        
+        try (Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            
+            while (rs.next()) {
+                Course course = new Course(
+                    rs.getString("course_id"),
+                    rs.getString("course_code"),
+                    rs.getString("course_name"),
+                    rs.getString("teacher_id"),
+                    rs.getString("schedule"),
+                    rs.getInt("credits")
+                );
+                
+                loadEnrollments(course);
+                loadLessons(course);
+                loadQuizzes(course);
+                
+                courses.add(course);
+            }
+        } catch (SQLException e) {
+            System.err.println("✗ Error retrieving all courses!");
+            e.printStackTrace();
+        }
+        return courses;
+    }
 }
