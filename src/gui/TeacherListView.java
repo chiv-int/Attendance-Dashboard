@@ -1,31 +1,33 @@
 package gui;
 
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableRowSorter;
-
-import models.AttendanceRecord;
-import models.Course;
-import models.Student;
-
 import java.awt.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.TemporalAdjusters;
+import com.github.lgooddatepicker.components.DatePicker;
+import com.github.lgooddatepicker.components.DatePickerSettings;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
+import models.AttendanceRecord;
+import models.Course;
+import models.Student;
 
 
 public class TeacherListView extends JPanel {
     private MainFrame mainFrame;
-    private JLabel titleLabel;
+    private JPanel breadcrumbPanel;
+    private JLabel homeLinkLabel;
+    private JLabel courseLabel;
+    private JLabel attendanceLinkLabel;
+    private JLabel attendanceListLabel;
     private String currentCourseCode;
     private String currentCourseName;
     private JLabel homeButton;
-    private JLabel classesButton;
 
     private JTable attendanceTable;
     private DefaultTableModel tableModel;
@@ -58,18 +60,41 @@ public class TeacherListView extends JPanel {
         // Main content
         JPanel contentPanel = new JPanel(new BorderLayout());
         contentPanel.setBackground(new Color(67, 79, 84)); // Medium dark gray
-        contentPanel.setBorder(new EmptyBorder(30, 60, 30, 60));
+        contentPanel.setBorder(new EmptyBorder(10, 60, 20, 60));
 
-        // Title
-        titleLabel = new JLabel("> Class > Attendance > Attendance List");
-        titleLabel.setFont(new Font("SansSerif", Font.BOLD, 20));
-        titleLabel.setForeground(Color.WHITE);
-        contentPanel.add(titleLabel, BorderLayout.NORTH);
+        // Breadcrumb
+        breadcrumbPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        breadcrumbPanel.setOpaque(false);
+
+        homeLinkLabel = createBreadcrumbLink("Home", () -> mainFrame.backToTeacherDashboard());
+        breadcrumbPanel.add(homeLinkLabel);
+        breadcrumbPanel.add(createBreadcrumbSeparator());
+
+        courseLabel = createBreadcrumbLink("Course", () -> {
+            if (currentCourseName != null && currentCourseCode != null) {
+                mainFrame.showClassDetail(currentCourseName, currentCourseCode);
+            }
+        });
+        breadcrumbPanel.add(courseLabel);
+        breadcrumbPanel.add(createBreadcrumbSeparator());
+
+        attendanceLinkLabel = createBreadcrumbLink("Attendance", () -> {
+            if (currentCourseName != null && currentCourseCode != null) {
+                mainFrame.showAttendanceOptions(currentCourseName, currentCourseCode);
+            }
+        });
+        breadcrumbPanel.add(attendanceLinkLabel);
+        breadcrumbPanel.add(createBreadcrumbSeparator());
+
+        attendanceListLabel = createBreadcrumbText("Attendance List");
+        breadcrumbPanel.add(attendanceListLabel);
+
+        contentPanel.add(breadcrumbPanel, BorderLayout.NORTH);
 
         // Search and table panel
         JPanel mainPanel = new JPanel(new BorderLayout());
         mainPanel.setOpaque(false);
-        mainPanel.setBorder(new EmptyBorder(20, 0, 0, 0));
+        mainPanel.setBorder(new EmptyBorder(8, 0, 0, 0));
 
         // Search panel
         JPanel searchPanel = createSearchPanel();
@@ -139,8 +164,7 @@ public class TeacherListView extends JPanel {
         homeButton = createNavButton("Home", false);
         centerSection.add(homeButton);
 
-        classesButton = createNavButton("Classes", true);
-        centerSection.add(classesButton);
+        // Classes button removed per request
 
         headerPanel.add(centerSection, BorderLayout.CENTER);
 
@@ -220,11 +244,7 @@ public class TeacherListView extends JPanel {
 
             @Override
             public void mouseExited(java.awt.event.MouseEvent e) {
-                if (label == classesButton) {
-                    label.setForeground(new Color(168, 126, 79));
-                } else {
-                    label.setForeground(new Color(176, 176, 176));
-                }
+                label.setForeground(new Color(176, 176, 176));
             }
 
             @Override
@@ -235,6 +255,44 @@ public class TeacherListView extends JPanel {
             }
         });
 
+        return label;
+    }
+
+    private JLabel createBreadcrumbLink(String text, Runnable onClick) {
+        JLabel label = new JLabel("<html><u>" + text + "</u></html>");
+        label.setFont(new Font("SansSerif", Font.BOLD, 20));
+        label.setForeground(new Color(198, 174, 92));
+        label.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        label.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent e) {
+                label.setForeground(new Color(208, 184, 102));
+            }
+
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent e) {
+                label.setForeground(new Color(198, 174, 92));
+            }
+
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                onClick.run();
+            }
+        });
+        return label;
+    }
+
+    private JLabel createBreadcrumbText(String text) {
+        JLabel label = new JLabel(text);
+        label.setFont(new Font("SansSerif", Font.BOLD, 20));
+        label.setForeground(Color.WHITE);
+        return label;
+    }
+
+    private JLabel createBreadcrumbSeparator() {
+        JLabel label = new JLabel(" > ");
+        label.setFont(new Font("SansSerif", Font.BOLD, 20));
+        label.setForeground(Color.WHITE);
         return label;
     }
 
@@ -386,7 +444,7 @@ public class TeacherListView extends JPanel {
         chip.add(label, BorderLayout.CENTER);
 
         // Close button
-        JLabel closeBtn = new JLabel("✕");
+        JLabel closeBtn = new JLabel("X");
         closeBtn.setFont(new Font("SansSerif", Font.BOLD, 14));
         closeBtn.setForeground(Color.BLACK);
         closeBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -585,7 +643,7 @@ public class TeacherListView extends JPanel {
         headerPanel.add(titleLabel, BorderLayout.WEST);
 
         // Close button
-        JLabel closeButton = new JLabel("✕");
+        JLabel closeButton = new JLabel("X");
         closeButton.setFont(new Font("Arial", Font.BOLD, 24));
         closeButton.setForeground(Color.WHITE);
         closeButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -596,7 +654,7 @@ public class TeacherListView extends JPanel {
             }
             @Override
             public void mouseEntered(java.awt.event.MouseEvent e) {
-                closeButton.setForeground(new Color(255, 200, 200));
+                closeButton.setForeground(new Color(160, 0, 0));
             }
             @Override
             public void mouseExited(java.awt.event.MouseEvent e) {
@@ -666,55 +724,61 @@ public class TeacherListView extends JPanel {
         fromLabel.setForeground(new Color(80, 80, 80));
         datePickerPanel.add(fromLabel);
 
-        JTextField startDateField = new JTextField(10);
-        startDateField.setFont(new Font("Arial", Font.PLAIN, 13));
-        startDateField.setText(customStartDate != null ? customStartDate.toString() : "yyyy-MM-dd");
-        startDateField.setEnabled(customRadio.isSelected());
-        startDateField.setBackground(new Color(218, 209, 193));
-        startDateField.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(180, 170, 155), 1),
-                new EmptyBorder(5, 8, 5, 8)
+        DatePickerSettings startSettings = new DatePickerSettings();
+        startSettings.setAllowEmptyDates(true);
+        startSettings.setFormatForDatesCommonEra("yyyy-MM-dd");
+        DatePicker startDatePicker = new DatePicker(startSettings);
+        startDatePicker.setDate(customStartDate);
+        startDatePicker.setEnabled(customRadio.isSelected());
+        startDatePicker.getComponentDateTextField().setFont(new Font("Arial", Font.PLAIN, 13));
+        startDatePicker.getComponentDateTextField().setBackground(new Color(218, 209, 193));
+        startDatePicker.getComponentDateTextField().setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(180, 170, 155), 1),
+            new EmptyBorder(5, 8, 5, 8)
         ));
-        startDateField.setForeground(new Color(60, 60, 60));
-        datePickerPanel.add(startDateField);
+        startDatePicker.getComponentDateTextField().setForeground(new Color(60, 60, 60));
+        datePickerPanel.add(startDatePicker);
 
         JLabel toLabel = new JLabel("To:");
         toLabel.setFont(new Font("Arial", Font.BOLD, 12));
         toLabel.setForeground(new Color(80, 80, 80));
         datePickerPanel.add(toLabel);
 
-        JTextField endDateField = new JTextField(10);
-        endDateField.setFont(new Font("Arial", Font.PLAIN, 13));
-        endDateField.setText(customEndDate != null ? customEndDate.toString() : "yyyy-MM-dd");
-        endDateField.setEnabled(customRadio.isSelected());
-        endDateField.setBackground(new Color(218, 209, 193));
-        endDateField.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(180, 170, 155), 1),
-                new EmptyBorder(5, 8, 5, 8)
+        DatePickerSettings endSettings = new DatePickerSettings();
+        endSettings.setAllowEmptyDates(true);
+        endSettings.setFormatForDatesCommonEra("yyyy-MM-dd");
+        DatePicker endDatePicker = new DatePicker(endSettings);
+        endDatePicker.setDate(customEndDate);
+        endDatePicker.setEnabled(customRadio.isSelected());
+        endDatePicker.getComponentDateTextField().setFont(new Font("Arial", Font.PLAIN, 13));
+        endDatePicker.getComponentDateTextField().setBackground(new Color(218, 209, 193));
+        endDatePicker.getComponentDateTextField().setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(180, 170, 155), 1),
+            new EmptyBorder(5, 8, 5, 8)
         ));
-        endDateField.setForeground(new Color(60, 60, 60));
-        datePickerPanel.add(endDateField);
+        endDatePicker.getComponentDateTextField().setForeground(new Color(60, 60, 60));
+        datePickerPanel.add(endDatePicker);
 
         customRadio.addActionListener(e -> {
-            startDateField.setEnabled(true);
-            endDateField.setEnabled(true);
+            startDatePicker.setEnabled(true);
+            endDatePicker.setEnabled(true);
         });
 
         allTimeRadio.addActionListener(e -> {
-            startDateField.setEnabled(false);
-            endDateField.setEnabled(false);
+            startDatePicker.setEnabled(false);
+            endDatePicker.setEnabled(false);
         });
         yesterdayRadio.addActionListener(e -> {
-            startDateField.setEnabled(false);
-            endDateField.setEnabled(false);
+            startDatePicker.setEnabled(false);
+            endDatePicker.setEnabled(false);
         });
         thisWeekRadio.addActionListener(e -> {
-            startDateField.setEnabled(false);
-            endDateField.setEnabled(false);
+            startDatePicker.setEnabled(false);
+            endDatePicker.setEnabled(false);
         });
         thisMonthRadio.addActionListener(e -> {
-            startDateField.setEnabled(false);
-            endDateField.setEnabled(false);
+            startDatePicker.setEnabled(false);
+            endDatePicker.setEnabled(false);
         });
 
         contentPanel.add(datePickerPanel);
@@ -782,16 +846,15 @@ public class TeacherListView extends JPanel {
             } else if (thisMonthRadio.isSelected()) {
                 dateFilterType = "This Month";
             } else if (customRadio.isSelected()) {
-                try {
-                    customStartDate = LocalDate.parse(startDateField.getText());
-                    customEndDate = LocalDate.parse(endDateField.getText());
-                    dateFilterType = "Custom";
-                } catch (Exception ex) {
+                customStartDate = startDatePicker.getDate();
+                customEndDate = endDatePicker.getDate();
+                if (customStartDate == null || customEndDate == null) {
                     JOptionPane.showMessageDialog(filterDialog,
-                            "Invalid date format. Please use yyyy-MM-dd",
+                            "Please select both start and end dates",
                             "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
+                dateFilterType = "Custom";
             }
 
             filterPresent = presentBox.isSelected();
@@ -971,7 +1034,7 @@ public class TeacherListView extends JPanel {
     public void setClassInfo(String courseName, String courseCode) {
         this.currentCourseName = courseName;
         this.currentCourseCode = courseCode;
-        titleLabel.setText("> Class > Attendance > Attendance List");
+        courseLabel.setText("<html><u>" + courseName + "</u></html>");
         loadRealAttendanceData();
     }
 }

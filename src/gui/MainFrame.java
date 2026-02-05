@@ -10,7 +10,6 @@ public class MainFrame extends JFrame {
     
     // View instances
     private TeacherDashboardView teacherDashboardView;
-    private TeacherClassDetailView teacherClassDetailView;
     private TeacherAttendanceOptionView teacherAttendanceOptionView;
     private TeacherListView teacherListView;
     
@@ -29,7 +28,6 @@ public class MainFrame extends JFrame {
         
         // Add all views to main panel
         mainPanel.add(teacherDashboardView, "TEACHER_DASHBOARD");
-        mainPanel.add(teacherClassDetailView, "TEACHER_CLASS_DETAIL");
         mainPanel.add(teacherAttendanceOptionView, "TEACHER_ATTENDANCE_OPTION");
         mainPanel.add(teacherListView, "TEACHER_LIST");
         
@@ -41,7 +39,6 @@ public class MainFrame extends JFrame {
     
     private void initializeViews() {
         teacherDashboardView = new TeacherDashboardView(this);
-        teacherClassDetailView = new TeacherClassDetailView(this);
         teacherAttendanceOptionView = new TeacherAttendanceOptionView(this);
         teacherListView = new TeacherListView(this);
     }
@@ -67,8 +64,8 @@ public class MainFrame extends JFrame {
     
 
     public void showClassDetail(String className, String courseCode) {
-        teacherClassDetailView.setClassInfo(className, courseCode);
-        showView("TEACHER_CLASS_DETAIL");
+        teacherDashboardView.showClassDetail(className, courseCode);
+        showView("TEACHER_DASHBOARD");
     }
     
 
@@ -89,7 +86,8 @@ public class MainFrame extends JFrame {
     }
 
     public void backToClassDetail() {
-        showView("TEACHER_CLASS_DETAIL");
+        teacherDashboardView.showLastClassDetail();
+        showView("TEACHER_DASHBOARD");
     }
     
     public static void main(String[] args) {

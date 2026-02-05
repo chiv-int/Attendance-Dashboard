@@ -1,11 +1,10 @@
 package gui;
 
+import java.awt.*;
+import java.util.List;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import java.util.List;
 import models.Course;
-
-import java.awt.*;
 
 
 public class TeacherDashboardView extends JPanel {
@@ -13,7 +12,10 @@ public class TeacherDashboardView extends JPanel {
     private CardLayout contentLayout;
     private JPanel contentPanel;
     private JLabel homeButton;
-    private JLabel classesButton;
+    private JScrollPane classDetailPanel;
+    private JLabel classDetailCourseLabel;
+    private String currentCourseName;
+    private String currentCourseCode;
 
     public TeacherDashboardView(MainFrame mainFrame) {
         this.mainFrame = mainFrame;
@@ -41,6 +43,10 @@ public class TeacherDashboardView extends JPanel {
         JScrollPane classesPanel = createClassesPanel(); // Changed from JPanel
         contentPanel.add(classesPanel, "CLASSES");
 
+        // Class detail panel (shown inside dashboard)
+        classDetailPanel = createClassDetailPanel();
+        contentPanel.add(classDetailPanel, "CLASS_DETAIL");
+
         add(contentPanel, BorderLayout.CENTER);
 
         // Show home by default
@@ -50,13 +56,27 @@ public class TeacherDashboardView extends JPanel {
     private void showHome() {
         contentLayout.show(contentPanel, "HOME");
         homeButton.setForeground(Color.WHITE);
-        classesButton.setForeground(new Color(150, 150, 150));
     }
 
     private void showClasses() {
         contentLayout.show(contentPanel, "CLASSES");
         homeButton.setForeground(new Color(150, 150, 150));
-        classesButton.setForeground(Color.WHITE);
+    }
+
+    public void showClassDetail(String courseName, String courseCode) {
+        this.currentCourseName = courseName;
+        this.currentCourseCode = courseCode;
+        classDetailCourseLabel.setText(courseName);
+        contentLayout.show(contentPanel, "CLASS_DETAIL");
+        homeButton.setForeground(Color.WHITE);
+    }
+
+    public void showLastClassDetail() {
+        if (currentCourseName != null && currentCourseCode != null) {
+            showClassDetail(currentCourseName, currentCourseCode);
+        } else {
+            showHome();
+        }
     }
 
     private JPanel createHeader() {
@@ -107,9 +127,6 @@ public class TeacherDashboardView extends JPanel {
         // Navigation buttons
         homeButton = createNavButton("Home", true);
         centerSection.add(homeButton);
-
-        classesButton = createNavButton("Classes", false);
-        centerSection.add(classesButton);
 
         headerPanel.add(centerSection, BorderLayout.CENTER);
 
@@ -171,7 +188,7 @@ public class TeacherDashboardView extends JPanel {
             }
 
             private boolean isActive() {
-                return getText().equals("Home") ? homeButton == this : classesButton == this;
+                return homeButton == this;
             }
         };
 
@@ -189,7 +206,7 @@ public class TeacherDashboardView extends JPanel {
 
             @Override
             public void mouseExited(java.awt.event.MouseEvent e) {
-                if (label == classesButton) {
+                if (label == homeButton) {
                     label.setForeground(new Color(168, 126, 79));
                 } else {
                     label.setForeground(new Color(176, 176, 176));
@@ -200,8 +217,6 @@ public class TeacherDashboardView extends JPanel {
             public void mouseClicked(java.awt.event.MouseEvent e) {
                 if (label == homeButton) {
                     showHome();
-                } else if (label == classesButton) {
-                    showClasses();
                 }
             }
         });
@@ -311,34 +326,185 @@ public class TeacherDashboardView extends JPanel {
         classesContentPanel.setBackground(new Color(78, 129, 136));
         classesContentPanel.setBorder(new EmptyBorder(20, 30, 20, 30));
 
-        // Empty state panel
-        JPanel emptyStatePanel = new JPanel();
-        emptyStatePanel.setLayout(new BoxLayout(emptyStatePanel, BoxLayout.Y_AXIS));
-        emptyStatePanel.setOpaque(false);
-        emptyStatePanel.setBorder(new EmptyBorder(100, 0, 0, 0));
+        addCourseCards(classesContentPanel);
 
-        JLabel emptyIcon = new JLabel("📚");
-        emptyIcon.setFont(new Font("Arial", Font.PLAIN, 48));
-        emptyIcon.setAlignmentX(Component.CENTER_ALIGNMENT);
-        emptyStatePanel.add(emptyIcon);
-
-        emptyStatePanel.add(Box.createRigidArea(new Dimension(0, 20)));
-
-        JLabel emptyText = new JLabel("Content will be added here soon");
-        emptyText.setFont(new Font("Arial", Font.PLAIN, 14));
-        emptyText.setForeground(new Color(218, 209, 193));
-        emptyText.setAlignmentX(Component.CENTER_ALIGNMENT);
-        emptyStatePanel.add(emptyText);
-
-        classesContentPanel.add(emptyStatePanel);
-
-        // Scroll pane
         JScrollPane scrollPane = new JScrollPane(classesContentPanel);
         scrollPane.setBorder(null);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         scrollPane.setBackground(new Color(78, 129, 136));
 
         return scrollPane;
+    }
+
+    private void addCourseCards(JPanel container) {
+        BackendManager backend = BackendManager.getInstance();
+        List<Course> teacherCourses = backend.getCoursesForCurrentUser();
+
+        if (teacherCourses.isEmpty()) {
+            JPanel emptyStatePanel = new JPanel();
+            emptyStatePanel.setLayout(new BoxLayout(emptyStatePanel, BoxLayout.Y_AXIS));
+            emptyStatePanel.setOpaque(false);
+            emptyStatePanel.setBorder(new EmptyBorder(100, 0, 0, 0));
+
+            JLabel emptyIcon = new JLabel("📚");
+            emptyIcon.setFont(new Font("Arial", Font.PLAIN, 48));
+            emptyIcon.setAlignmentX(Component.CENTER_ALIGNMENT);
+            emptyStatePanel.add(emptyIcon);
+
+            emptyStatePanel.add(Box.createRigidArea(new Dimension(0, 20)));
+
+            JLabel emptyText = new JLabel("No classes available");
+            emptyText.setFont(new Font("Arial", Font.PLAIN, 14));
+            emptyText.setForeground(new Color(218, 209, 193));
+            emptyText.setAlignmentX(Component.CENTER_ALIGNMENT);
+            emptyStatePanel.add(emptyText);
+
+            container.add(emptyStatePanel);
+            return;
+        }
+
+        for (Course course : teacherCourses) {
+            JPanel classCard = createStudentStyleClassCard(
+                    course.getCourseCode(),
+                    course.getCourseName()
+            );
+            classCard.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+            classCard.addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override
+                public void mouseClicked(java.awt.event.MouseEvent e) {
+                    mainFrame.showClassDetail(
+                            course.getCourseName(),
+                            course.getCourseCode()
+                    );
+                }
+            });
+
+            container.add(classCard);
+            container.add(Box.createRigidArea(new Dimension(0, 20)));
+        }
+    }
+
+    private JScrollPane createClassDetailPanel() {
+        JPanel contentPanel = new JPanel();
+        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+        contentPanel.setBackground(new Color(67, 79, 84));
+        contentPanel.setBorder(new EmptyBorder(10, 60, 20, 60));
+        contentPanel.setAlignmentY(Component.TOP_ALIGNMENT);
+
+        JPanel breadcrumbPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        breadcrumbPanel.setOpaque(false);
+        breadcrumbPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JLabel homeLink = createBreadcrumbLink("Home", this::showHome);
+        breadcrumbPanel.add(homeLink);
+        breadcrumbPanel.add(createBreadcrumbSeparator());
+
+        classDetailCourseLabel = createBreadcrumbText("Class");
+        breadcrumbPanel.add(classDetailCourseLabel);
+
+        contentPanel.add(breadcrumbPanel);
+        contentPanel.add(Box.createRigidArea(new Dimension(0, 4)));
+
+        JPanel attendanceCard = createOptionCard("Attendance");
+        attendanceCard.setAlignmentX(Component.LEFT_ALIGNMENT);
+        attendanceCard.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                if (currentCourseName != null && currentCourseCode != null) {
+                    mainFrame.showAttendanceOptions(currentCourseName, currentCourseCode);
+                }
+            }
+        });
+        contentPanel.add(attendanceCard);
+        contentPanel.add(Box.createRigidArea(new Dimension(0, 20)));
+
+        JPanel lessonsCard = createOptionCard("Lessons");
+        lessonsCard.setAlignmentX(Component.LEFT_ALIGNMENT);
+        contentPanel.add(lessonsCard);
+        contentPanel.add(Box.createRigidArea(new Dimension(0, 20)));
+
+        JPanel exercisesCard = createOptionCard("Exercises");
+        exercisesCard.setAlignmentX(Component.LEFT_ALIGNMENT);
+        contentPanel.add(exercisesCard);
+        contentPanel.add(Box.createRigidArea(new Dimension(0, 20)));
+
+        JPanel quizCard = createOptionCard("Quiz");
+        quizCard.setAlignmentX(Component.LEFT_ALIGNMENT);
+        contentPanel.add(quizCard);
+
+        contentPanel.add(Box.createVerticalGlue());
+
+        JScrollPane scrollPane = new JScrollPane(contentPanel);
+        scrollPane.setBorder(null);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        scrollPane.setBackground(new Color(67, 79, 84));
+        scrollPane.getViewport().setViewPosition(new Point(0, 0));
+        return scrollPane;
+    }
+
+    private JLabel createBreadcrumbLink(String text, Runnable onClick) {
+        JLabel label = new JLabel("<html><u>" + text + "</u></html>");
+        label.setFont(new Font("SansSerif", Font.BOLD, 20));
+        label.setForeground(new Color(198, 174, 92));
+        label.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        label.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent e) {
+                label.setForeground(new Color(208, 184, 102));
+            }
+
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent e) {
+                label.setForeground(new Color(198, 174, 92));
+            }
+
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                onClick.run();
+            }
+        });
+        return label;
+    }
+
+    private JLabel createBreadcrumbText(String text) {
+        JLabel label = new JLabel(text);
+        label.setFont(new Font("SansSerif", Font.BOLD, 20));
+        label.setForeground(Color.WHITE);
+        return label;
+    }
+
+    private JLabel createBreadcrumbSeparator() {
+        JLabel label = new JLabel(" > ");
+        label.setFont(new Font("SansSerif", Font.BOLD, 20));
+        label.setForeground(Color.WHITE);
+        return label;
+    }
+
+    private JPanel createOptionCard(String title) {
+        JPanel card = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 18));
+        card.setBackground(new Color(218, 209, 193));
+        card.setBorder(BorderFactory.createLineBorder(new Color(200, 190, 175), 1));
+        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 65));
+        card.setPreferredSize(new Dimension(700, 65));
+        card.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        JLabel titleLabel = new JLabel(title);
+        titleLabel.setFont(new Font("SansSerif", Font.PLAIN, 18));
+        titleLabel.setForeground(new Color(120, 110, 100));
+        card.add(titleLabel);
+
+        card.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                card.setBackground(new Color(210, 201, 185));
+            }
+
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                card.setBackground(new Color(218, 209, 193));
+            }
+        });
+
+        return card;
     }
 
     private JPanel createStudentStyleClassCard(String courseCode, String courseName) {

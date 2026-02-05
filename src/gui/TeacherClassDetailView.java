@@ -1,17 +1,18 @@
 package gui;
 
+import java.awt.*;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import java.awt.*;
 
 
 public class TeacherClassDetailView extends JPanel {
     private MainFrame mainFrame;
-    private JLabel titleLabel;
+    private JPanel breadcrumbPanel;
+    private JLabel classesLinkLabel;
+    private JLabel courseLabel;
     private String currentCourseCode;
     private String currentCourseName;
     private JLabel homeButton;
-    private JLabel classesButton;
 
     public TeacherClassDetailView(MainFrame mainFrame) {
         this.mainFrame = mainFrame;
@@ -33,11 +34,20 @@ public class TeacherClassDetailView extends JPanel {
         contentPanel.setBorder(new EmptyBorder(30, 60, 30, 60));
 
         // Title
-        titleLabel = new JLabel("> Class");
-        titleLabel.setFont(new Font("SansSerif", Font.BOLD, 20));
-        titleLabel.setForeground(Color.WHITE);
-        titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        contentPanel.add(titleLabel);
+        breadcrumbPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        breadcrumbPanel.setOpaque(false);
+        breadcrumbPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        classesLinkLabel = createBreadcrumbLink("Home", () -> mainFrame.backToTeacherDashboard());
+        breadcrumbPanel.add(classesLinkLabel);
+
+        JLabel separator = createBreadcrumbSeparator();
+        breadcrumbPanel.add(separator);
+
+        courseLabel = createBreadcrumbText("Class");
+        breadcrumbPanel.add(courseLabel);
+
+        contentPanel.add(breadcrumbPanel);
 
         contentPanel.add(Box.createRigidArea(new Dimension(0, 30)));
 
@@ -123,9 +133,6 @@ public class TeacherClassDetailView extends JPanel {
         homeButton = createNavButton("Home", false);
         centerSection.add(homeButton);
 
-        classesButton = createNavButton("Classes", true);
-        centerSection.add(classesButton);
-
         headerPanel.add(centerSection, BorderLayout.CENTER);
 
         // Right section
@@ -202,11 +209,7 @@ public class TeacherClassDetailView extends JPanel {
 
             @Override
             public void mouseExited(java.awt.event.MouseEvent e) {
-                if (label == classesButton) {
-                    label.setForeground(new Color(168, 126, 79));
-                } else {
-                    label.setForeground(new Color(176, 176, 176));
-                }
+                label.setForeground(new Color(176, 176, 176));
             }
 
             @Override
@@ -217,6 +220,44 @@ public class TeacherClassDetailView extends JPanel {
             }
         });
 
+        return label;
+    }
+
+    private JLabel createBreadcrumbLink(String text, Runnable onClick) {
+        JLabel label = new JLabel("<html><u>" + text + "</u></html>");
+        label.setFont(new Font("SansSerif", Font.BOLD, 20));
+        label.setForeground(new Color(198, 174, 92));
+        label.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        label.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent e) {
+                label.setForeground(new Color(208, 184, 102));
+            }
+
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent e) {
+                label.setForeground(new Color(198, 174, 92));
+            }
+
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                onClick.run();
+            }
+        });
+        return label;
+    }
+
+    private JLabel createBreadcrumbText(String text) {
+        JLabel label = new JLabel(text);
+        label.setFont(new Font("SansSerif", Font.BOLD, 20));
+        label.setForeground(Color.WHITE);
+        return label;
+    }
+
+    private JLabel createBreadcrumbSeparator() {
+        JLabel label = new JLabel(" > ");
+        label.setFont(new Font("SansSerif", Font.BOLD, 20));
+        label.setForeground(Color.WHITE);
         return label;
     }
 
@@ -268,6 +309,6 @@ public class TeacherClassDetailView extends JPanel {
     public void setClassInfo(String courseName, String courseCode) {
         this.currentCourseName = courseName;
         this.currentCourseCode = courseCode;
-        titleLabel.setText("> Class: " + courseName);
+        courseLabel.setText(courseName);
     }
 }

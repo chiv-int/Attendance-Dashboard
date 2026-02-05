@@ -1,21 +1,23 @@
 package gui;
 
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-
-import models.Course;
-
 import java.awt.*;
 import java.util.Random;
+import com.github.lgooddatepicker.components.DatePicker;
+import com.github.lgooddatepicker.components.DatePickerSettings;
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import models.Course;
 
 
 public class TeacherAttendanceOptionView extends JPanel {
     private MainFrame mainFrame;
-    private JLabel titleLabel;
+    private JPanel breadcrumbPanel;
+    private JLabel homeLinkLabel;
+    private JLabel courseLabel;
+    private JLabel attendanceLabel;
     private String currentCourseCode;
     private String currentCourseName;
     private JLabel homeButton;
-    private JLabel classesButton;
     
     public TeacherAttendanceOptionView(MainFrame mainFrame) {
         this.mainFrame = mainFrame;
@@ -34,16 +36,35 @@ public class TeacherAttendanceOptionView extends JPanel {
         JPanel contentPanel = new JPanel();
         contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
         contentPanel.setBackground(new Color(67, 79, 84)); // Medium dark gray
-        contentPanel.setBorder(new EmptyBorder(30, 60, 30, 60));
+        contentPanel.setBorder(new EmptyBorder(10, 60, 20, 60));
+        contentPanel.setAlignmentY(Component.TOP_ALIGNMENT);
         
-        // "> Class > Attendance" title
-        titleLabel = new JLabel("> Class > Attendance");
-        titleLabel.setFont(new Font("SansSerif", Font.BOLD, 20));
-        titleLabel.setForeground(Color.WHITE);
-        titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        contentPanel.add(titleLabel);
+        // Breadcrumb: Home > Course > Attendance
+        breadcrumbPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        breadcrumbPanel.setOpaque(false);
+        breadcrumbPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        homeLinkLabel = createBreadcrumbLink("Home", () -> mainFrame.backToTeacherDashboard());
+        breadcrumbPanel.add(homeLinkLabel);
+
+        JLabel separator = createBreadcrumbSeparator();
+        breadcrumbPanel.add(separator);
+
+        courseLabel = createBreadcrumbLink("Course", () -> {
+            if (currentCourseName != null && currentCourseCode != null) {
+                mainFrame.showClassDetail(currentCourseName, currentCourseCode);
+            }
+        });
+        breadcrumbPanel.add(courseLabel);
+
+        breadcrumbPanel.add(createBreadcrumbSeparator());
+
+        attendanceLabel = createBreadcrumbText("Attendance");
+        breadcrumbPanel.add(attendanceLabel);
+
+        contentPanel.add(breadcrumbPanel);
         
-        contentPanel.add(Box.createRigidArea(new Dimension(0, 30)));
+        contentPanel.add(Box.createRigidArea(new Dimension(0, 4)));
         
         // Option cards
         JPanel passwordCard = createOptionCard("Generate Password");
@@ -64,12 +85,15 @@ public class TeacherAttendanceOptionView extends JPanel {
             }
         });
         contentPanel.add(listCard);
+
+        contentPanel.add(Box.createVerticalGlue());
         
         // Wrap in scroll pane
         JScrollPane scrollPane = new JScrollPane(contentPanel);
         scrollPane.setBorder(null);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         scrollPane.setBackground(new Color(67, 79, 84));
+        scrollPane.getViewport().setViewPosition(new Point(0, 0));
         
         add(scrollPane, BorderLayout.CENTER);
     }
@@ -123,8 +147,7 @@ public class TeacherAttendanceOptionView extends JPanel {
         homeButton = createNavButton("Home", false);
         centerSection.add(homeButton);
 
-        classesButton = createNavButton("Classes", true);
-        centerSection.add(classesButton);
+        // Classes button removed per request
         
         headerPanel.add(centerSection, BorderLayout.CENTER);
 
@@ -204,11 +227,7 @@ public class TeacherAttendanceOptionView extends JPanel {
 
             @Override
             public void mouseExited(java.awt.event.MouseEvent e) {
-                if (label == classesButton) {
-                    label.setForeground(new Color(168, 126, 79));
-                } else {
-                    label.setForeground(new Color(176, 176, 176));
-                }
+                label.setForeground(new Color(176, 176, 176));
             }
 
             @Override
@@ -219,6 +238,44 @@ public class TeacherAttendanceOptionView extends JPanel {
             }
         });
 
+        return label;
+    }
+
+    private JLabel createBreadcrumbLink(String text, Runnable onClick) {
+        JLabel label = new JLabel("<html><u>" + text + "</u></html>");
+        label.setFont(new Font("SansSerif", Font.BOLD, 20));
+        label.setForeground(new Color(198, 174, 92));
+        label.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        label.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent e) {
+                label.setForeground(new Color(208, 184, 102));
+            }
+
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent e) {
+                label.setForeground(new Color(198, 174, 92));
+            }
+
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                onClick.run();
+            }
+        });
+        return label;
+    }
+
+    private JLabel createBreadcrumbText(String text) {
+        JLabel label = new JLabel(text);
+        label.setFont(new Font("SansSerif", Font.BOLD, 20));
+        label.setForeground(Color.WHITE);
+        return label;
+    }
+
+    private JLabel createBreadcrumbSeparator() {
+        JLabel label = new JLabel(" > ");
+        label.setFont(new Font("SansSerif", Font.BOLD, 20));
+        label.setForeground(Color.WHITE);
         return label;
     }
 
@@ -311,7 +368,7 @@ public class TeacherAttendanceOptionView extends JPanel {
         headerPanel.add(titleLabel, BorderLayout.WEST);
         
         // Close button
-        JLabel closeBtn = new JLabel("✕");
+        JLabel closeBtn = new JLabel("X");
         closeBtn.setFont(new Font("Arial", Font.BOLD, 28));
         closeBtn.setForeground(Color.WHITE);
         closeBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -322,7 +379,7 @@ public class TeacherAttendanceOptionView extends JPanel {
             }
             @Override
             public void mouseEntered(java.awt.event.MouseEvent e) {
-                closeBtn.setForeground(new Color(255, 200, 200));
+                closeBtn.setForeground(new Color(160, 0, 0));
             }
             @Override
             public void mouseExited(java.awt.event.MouseEvent e) {
@@ -353,16 +410,19 @@ public class TeacherAttendanceOptionView extends JPanel {
         
         gbc.gridy++;
         gbc.insets = new Insets(0, 0, 20, 0);
-        JTextField dateField = new JTextField(java.time.LocalDate.now()
-                .format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")));
-        dateField.setFont(new Font("Arial", Font.PLAIN, 15));
-        dateField.setPreferredSize(new Dimension(350, 42));
-        dateField.setBorder(BorderFactory.createCompoundBorder(
+        DatePickerSettings dateSettings = new DatePickerSettings();
+        dateSettings.setAllowEmptyDates(false);
+        dateSettings.setFormatForDatesCommonEra("dd/MM/yyyy");
+        DatePicker datePicker = new DatePicker(dateSettings);
+        datePicker.setDate(java.time.LocalDate.now());
+        datePicker.setPreferredSize(new Dimension(350, 42));
+        datePicker.getComponentDateTextField().setFont(new Font("Arial", Font.PLAIN, 15));
+        datePicker.getComponentDateTextField().setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(new Color(180, 180, 180), 2),
             new EmptyBorder(8, 12, 8, 12)
         ));
-        dateField.setBackground(Color.WHITE);
-        contentPanel.add(dateField, gbc);
+        datePicker.getComponentDateTextField().setBackground(Color.WHITE);
+        contentPanel.add(datePicker, gbc);
         
         // Start time input
         gbc.gridy++;
@@ -443,12 +503,12 @@ public class TeacherAttendanceOptionView extends JPanel {
         generateBtn.setPreferredSize(new Dimension(140, 45));
         
         generateBtn.addActionListener(e -> {
-            String date = dateField.getText().trim();
+            java.time.LocalDate selectedDate = datePicker.getDate();
             String startTime = startField.getText().trim();
             String endTime = endField.getText().trim();
             
             // Validate inputs
-            if (!isValidDate(date)) {
+            if (selectedDate == null) {
                 JOptionPane.showMessageDialog(inputDialog, 
                     "Invalid date format. Use DD/MM/YYYY", 
                     "Error", JOptionPane.ERROR_MESSAGE);
@@ -474,14 +534,17 @@ public class TeacherAttendanceOptionView extends JPanel {
             }
             
             // Generate code via backend
+            String formattedDate = selectedDate.format(
+                java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")
+            );
             String password = backend.generateAttendanceCode(
-                course.getCourseId(), date, startTime, endTime
+                course.getCourseId(), formattedDate, startTime, endTime
             );
             
             inputDialog.dispose();
             
             // Show success with generated code
-            showGeneratedCode(password, date, startTime, endTime);
+            showGeneratedCode(password, formattedDate, startTime, endTime);
         });
         
         JButton cancelBtn = new JButton("Cancel") {
@@ -601,6 +664,6 @@ public class TeacherAttendanceOptionView extends JPanel {
     public void setClassInfo(String courseName, String courseCode) {
         this.currentCourseName = courseName;
         this.currentCourseCode = courseCode;
-        titleLabel.setText("> Class > Attendance");
+        courseLabel.setText("<html><u>" + courseName + "</u></html>");
     }
 }
