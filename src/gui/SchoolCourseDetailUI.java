@@ -8,7 +8,6 @@ import java.util.List;
 
 public class SchoolCourseDetailUI extends JFrame {
     private JLabel homeLabel;
-    private JLabel courseLabel;
     private String currentCourseName;
     private JPanel contentPanel;
     private List<ExpandableSection> sections;
@@ -100,8 +99,6 @@ public class SchoolCourseDetailUI extends JFrame {
         homeLabel = createNavButton("Home", false);
         navPanel.add(homeLabel);
 
-        courseLabel = createNavButton("Course", true);
-        navPanel.add(courseLabel);
 
         headerPanel.add(navPanel, BorderLayout.CENTER);
 
@@ -159,7 +156,7 @@ public class SchoolCourseDetailUI extends JFrame {
             }
 
             private boolean isActive() {
-                return getText().equals("Home") ? homeLabel == this : courseLabel == this;
+                return homeLabel == this;
             }
         };
 
@@ -177,7 +174,7 @@ public class SchoolCourseDetailUI extends JFrame {
 
             @Override
             public void mouseExited(MouseEvent e) {
-                if (label == courseLabel) {
+                if (label == homeLabel) {
                     label.setForeground(new Color(168, 126, 79));
                 } else {
                     label.setForeground(new Color(176, 176, 176));
@@ -200,13 +197,87 @@ public class SchoolCourseDetailUI extends JFrame {
                 SchoolHomeUI homeFrame = new SchoolHomeUI();
                 homeFrame.setVisible(true);
             });
-        } else if (clickedLabel.getText().equals("Course")) {
-            this.dispose();
-            SwingUtilities.invokeLater(() -> {
-                SchoolCourseUI courseFrame = new SchoolCourseUI();
-                courseFrame.setVisible(true);
-            });
         }
+    }
+
+    private JPanel createBreadcrumb() {
+        JPanel breadcrumbPanel = new JPanel();
+        breadcrumbPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        breadcrumbPanel.setOpaque(false);
+
+        // Home breadcrumb (clickable)
+        JLabel homeBreadcrumb = new JLabel("Home");
+        homeBreadcrumb.setFont(new Font("Arial", Font.PLAIN, 13));
+        homeBreadcrumb.setForeground(new Color(100, 180, 200));
+        homeBreadcrumb.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        homeBreadcrumb.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                dispose();
+                SwingUtilities.invokeLater(() -> {
+                    SchoolHomeUI homeFrame = new SchoolHomeUI();
+                    homeFrame.setVisible(true);
+                });
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                homeBreadcrumb.setForeground(new Color(70, 160, 190));
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                homeBreadcrumb.setForeground(new Color(100, 180, 200));
+            }
+        });
+        breadcrumbPanel.add(homeBreadcrumb);
+
+        // Separator
+        JLabel separator1 = new JLabel(" > ");
+        separator1.setFont(new Font("Arial", Font.PLAIN, 13));
+        separator1.setForeground(new Color(150, 150, 150));
+        breadcrumbPanel.add(separator1);
+
+        // Courses breadcrumb (clickable - goes back to home courses section)
+        JLabel coursesBreadcrumb = new JLabel("Courses");
+        coursesBreadcrumb.setFont(new Font("Arial", Font.PLAIN, 13));
+        coursesBreadcrumb.setForeground(new Color(100, 180, 200));
+        coursesBreadcrumb.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        coursesBreadcrumb.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                dispose();
+                SwingUtilities.invokeLater(() -> {
+                    SchoolHomeUI homeFrame = new SchoolHomeUI();
+                    homeFrame.setVisible(true);
+                });
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                coursesBreadcrumb.setForeground(new Color(70, 160, 190));
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                coursesBreadcrumb.setForeground(new Color(100, 180, 200));
+            }
+        });
+        breadcrumbPanel.add(coursesBreadcrumb);
+
+        // Separator
+        JLabel separator2 = new JLabel(" > ");
+        separator2.setFont(new Font("Arial", Font.PLAIN, 13));
+        separator2.setForeground(new Color(150, 150, 150));
+        breadcrumbPanel.add(separator2);
+
+        // Current course name (not clickable)
+        JLabel currentCourseBreadcrumb = new JLabel(currentCourseName);
+        currentCourseBreadcrumb.setFont(new Font("Arial", Font.BOLD, 13));
+        currentCourseBreadcrumb.setForeground(new Color(168, 126, 79));
+        breadcrumbPanel.add(currentCourseBreadcrumb);
+
+        return breadcrumbPanel;
     }
 
     private JPanel createContent() {
@@ -227,18 +298,22 @@ public class SchoolCourseDetailUI extends JFrame {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(30, 50, 0, 50);
 
+        // Breadcrumb navigation
+        JPanel breadcrumbPanel = createBreadcrumb();
+        contentPanelMain.add(breadcrumbPanel, gbc);
+
         // Course name header
         JLabel courseNameHeader = new JLabel("> " + currentCourseName);
         courseNameHeader.setFont(new Font("Arial", Font.PLAIN, 18));
         courseNameHeader.setForeground(new Color(200, 200, 200));
-        gbc.gridy = 0;
+        gbc.gridy = 1;
         contentPanelMain.add(courseNameHeader, gbc);
 
         // Create expandable sections
         sections = new ArrayList<>();
         String[] sectionTitles = {"Attendance", "Week 1", "Week 2", "Week 3"};
         
-        int rowIndex = 1;
+        int rowIndex = 2;
         for (String title : sectionTitles) {
             gbc.insets = new Insets(30, 50, 0, 50);
             gbc.gridy = rowIndex;

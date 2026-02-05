@@ -11,7 +11,6 @@ import java.awt.event.*;
 
 public class SchoolAttendanceUI extends JFrame {
     private JLabel homeLabel;
-    private JLabel courseLabel;
     private String currentCourseName;
     private JPasswordField passwordField;
     private JRadioButton presentButton;
@@ -103,9 +102,6 @@ public class SchoolAttendanceUI extends JFrame {
         homeLabel = createNavButton("Home", false);
         navPanel.add(homeLabel);
 
-        courseLabel = createNavButton("Course", true);
-        navPanel.add(courseLabel);
-
         headerPanel.add(navPanel, BorderLayout.CENTER);
 
         // Right: User info + Logout
@@ -162,7 +158,7 @@ public class SchoolAttendanceUI extends JFrame {
             }
 
             private boolean isActive() {
-                return getText().equals("Home") ? homeLabel == this : courseLabel == this;
+                return homeLabel == this;
             }
         };
 
@@ -180,7 +176,7 @@ public class SchoolAttendanceUI extends JFrame {
 
             @Override
             public void mouseExited(MouseEvent e) {
-                if (label == courseLabel) {
+                if (label == homeLabel) {
                     label.setForeground(new Color(168, 126, 79));
                 } else {
                     label.setForeground(new Color(176, 176, 176));
@@ -203,12 +199,6 @@ public class SchoolAttendanceUI extends JFrame {
                 SchoolHomeUI homeFrame = new SchoolHomeUI();
                 homeFrame.setVisible(true);
             });
-        } else if (clickedLabel.getText().equals("Course")) {
-            this.dispose();
-            SwingUtilities.invokeLater(() -> {
-                SchoolCourseUI courseFrame = new SchoolCourseUI();
-                courseFrame.setVisible(true);
-            });
         }
     }
 
@@ -228,16 +218,122 @@ public class SchoolAttendanceUI extends JFrame {
         GridBagConstraints gbc = new GridBagConstraints();
 
         // Breadcrumb at top
-        JLabel breadcrumb = new JLabel("> " + currentCourseName + " > Attendance");
-        breadcrumb.setFont(new Font("Arial", Font.PLAIN, 16));
-        breadcrumb.setForeground(new Color(200, 200, 200));
+        JPanel breadcrumbPanel = new JPanel();
+        breadcrumbPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        breadcrumbPanel.setOpaque(false);
+
+        // Home breadcrumb
+        JLabel homeBreadcrumb = new JLabel("Home");
+        homeBreadcrumb.setFont(new Font("Arial", Font.PLAIN, 13));
+        homeBreadcrumb.setForeground(new Color(100, 180, 200));
+        homeBreadcrumb.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        homeBreadcrumb.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                dispose();
+                SwingUtilities.invokeLater(() -> {
+                    SchoolHomeUI homeFrame = new SchoolHomeUI();
+                    homeFrame.setVisible(true);
+                });
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                homeBreadcrumb.setForeground(new Color(70, 160, 190));
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                homeBreadcrumb.setForeground(new Color(100, 180, 200));
+            }
+        });
+        breadcrumbPanel.add(homeBreadcrumb);
+
+        // Separator
+        JLabel separator1 = new JLabel(" > ");
+        separator1.setFont(new Font("Arial", Font.PLAIN, 13));
+        separator1.setForeground(new Color(150, 150, 150));
+        breadcrumbPanel.add(separator1);
+
+        // Courses breadcrumb
+        JLabel coursesBreadcrumb = new JLabel("Courses");
+        coursesBreadcrumb.setFont(new Font("Arial", Font.PLAIN, 13));
+        coursesBreadcrumb.setForeground(new Color(100, 180, 200));
+        coursesBreadcrumb.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        coursesBreadcrumb.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                dispose();
+                SwingUtilities.invokeLater(() -> {
+                    SchoolHomeUI homeFrame = new SchoolHomeUI();
+                    homeFrame.setVisible(true);
+                });
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                coursesBreadcrumb.setForeground(new Color(70, 160, 190));
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                coursesBreadcrumb.setForeground(new Color(100, 180, 200));
+            }
+        });
+        breadcrumbPanel.add(coursesBreadcrumb);
+
+        // Separator
+        JLabel separator2 = new JLabel(" > ");
+        separator2.setFont(new Font("Arial", Font.PLAIN, 13));
+        separator2.setForeground(new Color(150, 150, 150));
+        breadcrumbPanel.add(separator2);
+
+        // Course name breadcrumb
+        JLabel courseBreadcrumb = new JLabel(currentCourseName);
+        courseBreadcrumb.setFont(new Font("Arial", Font.PLAIN, 13));
+        courseBreadcrumb.setForeground(new Color(100, 180, 200));
+        courseBreadcrumb.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        courseBreadcrumb.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                dispose();
+                SwingUtilities.invokeLater(() -> {
+                    SchoolCourseDetailUI detailFrame = new SchoolCourseDetailUI(currentCourseName);
+                    detailFrame.setVisible(true);
+                });
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                courseBreadcrumb.setForeground(new Color(70, 160, 190));
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                courseBreadcrumb.setForeground(new Color(100, 180, 200));
+            }
+        });
+        breadcrumbPanel.add(courseBreadcrumb);
+
+        // Separator
+        JLabel separator3 = new JLabel(" > ");
+        separator3.setFont(new Font("Arial", Font.PLAIN, 13));
+        separator3.setForeground(new Color(150, 150, 150));
+        breadcrumbPanel.add(separator3);
+
+        // Attendance (current - not clickable)
+        JLabel attendanceBreadcrumb = new JLabel("Attendance");
+        attendanceBreadcrumb.setFont(new Font("Arial", Font.BOLD, 13));
+        attendanceBreadcrumb.setForeground(new Color(168, 126, 79));
+        breadcrumbPanel.add(attendanceBreadcrumb);
+
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.insets = new Insets(30, 50, 30, 50);
         gbc.anchor = GridBagConstraints.NORTHWEST;
         gbc.weightx = 1.0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        wrapperPanel.add(breadcrumb, gbc);
+        wrapperPanel.add(breadcrumbPanel, gbc);
 
         // Form card - centered in remaining space
         JPanel formPanel = new JPanel() {

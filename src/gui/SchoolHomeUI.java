@@ -1,12 +1,16 @@
 package gui;
 
 import javax.swing.*;
+import models.Course;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SchoolHomeUI extends JFrame {
     private JLabel homeLabel;
-    private JLabel courseLabel;
+    private JPanel contentPanel;
+    private JScrollPane scrollPane;
 
     public SchoolHomeUI() {
         setTitle("The Valley University - Student Dashboard");
@@ -30,8 +34,8 @@ public class SchoolHomeUI extends JFrame {
         mainPanel.add(headerPanel, BorderLayout.NORTH);
 
         // Content area
-        JPanel contentPanel = createContent();
-        mainPanel.add(contentPanel, BorderLayout.CENTER);
+        JPanel contentAreaPanel = createContent();
+        mainPanel.add(contentAreaPanel, BorderLayout.CENTER);
 
         // Footer
         JPanel footerPanel = createFooter();
@@ -55,6 +59,7 @@ public class SchoolHomeUI extends JFrame {
         };
         headerPanel.setLayout(new BorderLayout(15, 0));
         headerPanel.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+        headerPanel.setPreferredSize(new Dimension(0, 80));
 
         // Left: Logo + School name
         JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
@@ -85,9 +90,6 @@ public class SchoolHomeUI extends JFrame {
 
         homeLabel = createNavButton("Home", true);
         navPanel.add(homeLabel);
-
-        courseLabel = createNavButton("Course", false);
-        navPanel.add(courseLabel);
 
         headerPanel.add(navPanel, BorderLayout.CENTER);
 
@@ -145,7 +147,7 @@ public class SchoolHomeUI extends JFrame {
             }
 
             private boolean isActive() {
-                return getText().equals("Home") ? homeLabel == this : courseLabel == this;
+                return homeLabel == this;
             }
         };
 
@@ -180,17 +182,9 @@ public class SchoolHomeUI extends JFrame {
     }
 
     private void handleNavClick(JLabel clickedLabel) {
-        if (clickedLabel.getText().equals("Course")) {
-            this.dispose();
-            SwingUtilities.invokeLater(() -> {
-                SchoolCourseUI courseFrame = new SchoolCourseUI();
-                courseFrame.setVisible(true);
-            });
-        } else if (clickedLabel.getText().equals("Home")) {
+        if (clickedLabel.getText().equals("Home")) {
             homeLabel.setForeground(new Color(168, 126, 79));
-            courseLabel.setForeground(new Color(176, 176, 176));
             homeLabel.repaint();
-            courseLabel.repaint();
         }
     }
 
@@ -198,12 +192,12 @@ public class SchoolHomeUI extends JFrame {
         // Wrapper panel with scroll capability
         JPanel wrapperPanel = new JPanel();
         wrapperPanel.setLayout(new BorderLayout());
-        wrapperPanel.setBackground(new Color(245, 245, 245));
+        wrapperPanel.setBackground(new Color(78, 129, 136));
 
-        // Main scrollable content panel
-        JPanel contentPanel = new JPanel();
+        // Main scrollable content panel with responsive layout
+        contentPanel = new JPanel();
         contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
-        contentPanel.setBackground(new Color(245, 245, 245));
+        contentPanel.setBackground(new Color(78, 129, 136));
         contentPanel.setBorder(BorderFactory.createEmptyBorder(30, 40, 30, 40));
 
         // Welcome section
@@ -221,75 +215,141 @@ public class SchoolHomeUI extends JFrame {
         };
         welcomePanel.setLayout(new BoxLayout(welcomePanel, BoxLayout.Y_AXIS));
         welcomePanel.setOpaque(false);
-        welcomePanel.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
-        welcomePanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 120));
+        welcomePanel.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
+        welcomePanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 140));
         welcomePanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JLabel welcomeTitle = new JLabel("Welcome back, Student!");
         welcomeTitle.setFont(new Font("Arial", Font.BOLD, 24));
         welcomeTitle.setForeground(Color.WHITE);
+        welcomeTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
         welcomePanel.add(welcomeTitle);
 
-        JLabel welcomeText = new JLabel("<html>You're logged into your dashboard. Start exploring courses, check your progress, and manage your academic journey.</html>");
+        welcomePanel.add(Box.createRigidArea(new Dimension(0, 10)));
+
+        JLabel welcomeText = new JLabel("View your courses, track attendance, and manage your academic progress.");
         welcomeText.setFont(new Font("Arial", Font.PLAIN, 12));
         welcomeText.setForeground(new Color(242, 242, 242));
-        welcomeText.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
+        welcomeText.setAlignmentX(Component.LEFT_ALIGNMENT);
         welcomePanel.add(welcomeText);
 
         contentPanel.add(welcomePanel);
-        contentPanel.add(Box.createVerticalStrut(20));
+        contentPanel.add(Box.createRigidArea(new Dimension(0, 20)));
 
-        // Main content card
-        JPanel cardPanel = new JPanel() {
+        // Get courses from backend
+        BackendManager backend = BackendManager.getInstance();
+        List<Course> userCourses = backend.getCoursesForCurrentUser();
+        
+        // If backend returns courses, use those
+        if (userCourses != null && !userCourses.isEmpty()) {
+            for (Course course : userCourses) {
+                JPanel classCard = createResponsiveClassCard(course.getCourseName(), course.getCourseCode() != null ? course.getCourseCode() : "Course");
+                classCard.setAlignmentX(Component.LEFT_ALIGNMENT);
+                
+                final String courseName = course.getCourseName();
+                classCard.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        dispose();
+                        SchoolCourseDetailUI courseDetailUI = new SchoolCourseDetailUI(courseName);
+                        courseDetailUI.setVisible(true);
+                    }
+                });
+                contentPanel.add(classCard);
+                contentPanel.add(Box.createRigidArea(new Dimension(0, 15)));
+            }
+        } else {
+            // Fallback sample courses with codes
+            String[][] courses = {
+                {"CS101", "Introduction to Software Engineering"},
+                {"CS301", "Data Structures & Algorithms"},
+                {"CS402", "Machine Learning"},
+                {"CS205", "Database Systems"}
+            };
+            for (String[] courseData : courses) {
+                JPanel classCard = createResponsiveClassCard(courseData[1], courseData[0]);
+                classCard.setAlignmentX(Component.LEFT_ALIGNMENT);
+                
+                final String courseName = courseData[1];
+                classCard.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        dispose();
+                        SchoolCourseDetailUI courseDetailUI = new SchoolCourseDetailUI(courseName);
+                        courseDetailUI.setVisible(true);
+                    }
+                });
+                contentPanel.add(classCard);
+                contentPanel.add(Box.createRigidArea(new Dimension(0, 15)));
+            }
+        }
+
+        // Main scroll pane
+        scrollPane = new JScrollPane(contentPanel, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollPane.setBorder(null);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(10);
+        scrollPane.setBackground(new Color(78, 129, 136));
+        wrapperPanel.add(scrollPane, BorderLayout.CENTER);
+
+        return wrapperPanel;
+    }
+
+    private JPanel createResponsiveClassCard(String courseName, String courseCode) {
+        JPanel card = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g;
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-                g2d.setColor(Color.WHITE);
-                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
-
-                g2d.setColor(new Color(220, 220, 220));
-                g2d.setStroke(new BasicStroke(1));
-                g2d.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 12, 12);
+                // Cream background with rounded corners
+                g2d.setColor(new Color(245, 242, 233));
+                g2d.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 15, 15);
             }
         };
-        cardPanel.setLayout(new GridBagLayout());
-        cardPanel.setOpaque(false);
-        cardPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 300));
-        cardPanel.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
-        cardPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        card.setLayout(new BorderLayout(20, 0));
+        card.setOpaque(false);
+        card.setBackground(new Color(245, 242, 233));
+        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 100));
+        card.setPreferredSize(new Dimension(Integer.MAX_VALUE, 100));
+        card.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        card.setBorder(BorderFactory.createEmptyBorder(15, 25, 15, 25));
 
-        // Empty state icon
-        JLabel emptyIcon = new JLabel("📚");
-        emptyIcon.setFont(new Font("Arial", Font.PLAIN, 48));
+        // Left side: Course code
+        JLabel courseCodeLabel = new JLabel(courseCode);
+        courseCodeLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        courseCodeLabel.setForeground(new Color(168, 126, 79));
+        card.add(courseCodeLabel, BorderLayout.WEST);
 
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.insets = new Insets(0, 0, 20, 0);
-        cardPanel.add(emptyIcon, gbc);
+        // Center: Course name
+        JPanel centerPanel = new JPanel();
+        centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
+        centerPanel.setOpaque(false);
 
-        // Empty state text
-        JLabel emptyText = new JLabel("Content will be added here soon");
-        emptyText.setFont(new Font("Arial", Font.PLAIN, 14));
-        emptyText.setForeground(new Color(136, 136, 136));
+        JLabel courseNameLabel = new JLabel(courseName);
+        courseNameLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        courseNameLabel.setForeground(new Color(60, 60, 60));
+        courseNameLabel.setAlignmentY(Component.CENTER_ALIGNMENT);
+        centerPanel.add(courseNameLabel);
 
-        gbc.gridy = 1;
-        cardPanel.add(emptyText, gbc);
+        card.add(centerPanel, BorderLayout.CENTER);
 
-        contentPanel.add(cardPanel);
-        contentPanel.add(Box.createVerticalGlue());
+        // Add hover effect
+        card.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                card.setBackground(new Color(240, 236, 225));
+                card.repaint();
+            }
 
-        // Scroll pane
-        JScrollPane scrollPane = new JScrollPane(contentPanel, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        scrollPane.setBorder(null);
-        scrollPane.getVerticalScrollBar().setUnitIncrement(10);
-        scrollPane.setBackground(new Color(245, 245, 245));
-        wrapperPanel.add(scrollPane, BorderLayout.CENTER);
+            @Override
+            public void mouseExited(MouseEvent e) {
+                card.setBackground(new Color(245, 242, 233));
+                card.repaint();
+            }
+        });
 
-        return wrapperPanel;
+        return card;
     }
 
     private JPanel createFooter() {
@@ -309,6 +369,7 @@ public class SchoolHomeUI extends JFrame {
             }
         };
         footerPanel.setLayout(new BorderLayout());
+        footerPanel.setPreferredSize(new Dimension(0, 60));
 
         JLabel footerText = new JLabel("© 2024 The Valley University. All rights reserved. | Privacy Policy | Contact Support");
         footerText.setFont(new Font("Arial", Font.PLAIN, 12));
