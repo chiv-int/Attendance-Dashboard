@@ -5,14 +5,13 @@ import models.Course;
 public class TeacherService {
     private final CourseRepository courseRepository;
     private final PasswordGenerator passwordGenerator;
-    private final QRCodeGenerator qrCodeGenerator;
     private final CourseContentService contentService;
     private final AttendanceService attendanceService;
     
     public TeacherService() {
         this.courseRepository = new CourseRepository();
         this.passwordGenerator = new PasswordGenerator();
-        this.qrCodeGenerator = new QRCodeGenerator();
+
         this.contentService = new CourseContentService(courseRepository);
         this.attendanceService = new AttendanceService(courseRepository);
     }
@@ -48,7 +47,7 @@ public class TeacherService {
             return null;
         }
         
-        return qrCodeGenerator.generateQRData(password);
+        return null;
     }
     public void viewStudentList(String courseName) {
         attendanceService.viewAttendanceRecords(courseName);
