@@ -14,35 +14,35 @@ public class TeacherDashboardView extends JPanel {
     private JPanel contentPanel;
     private JLabel homeButton;
     private JLabel classesButton;
-    
+
     public TeacherDashboardView(MainFrame mainFrame) {
         this.mainFrame = mainFrame;
         setLayout(new BorderLayout());
         setBackground(new Color(45, 52, 54)); // Dark background
-        
+
         initComponents();
     }
-    
+
     private void initComponents() {
         // Header with navigation
         JPanel headerPanel = createHeader();
         add(headerPanel, BorderLayout.NORTH);
-        
+
         // Content area with CardLayout
         contentLayout = new CardLayout();
         contentPanel = new JPanel(contentLayout);
         contentPanel.setBackground(new Color(67, 79, 84)); // Medium dark gray
-        
+
         // Home panel
         JScrollPane homePanel = createHomePanel(); // Changed from JPanel
         contentPanel.add(homePanel, "HOME");
-        
+
         // Classes panel
         JScrollPane classesPanel = createClassesPanel(); // Changed from JPanel
         contentPanel.add(classesPanel, "CLASSES");
-        
+
         add(contentPanel, BorderLayout.CENTER);
-        
+
         // Show home by default
         showHome();
     }
@@ -58,7 +58,7 @@ public class TeacherDashboardView extends JPanel {
         homeButton.setForeground(new Color(150, 150, 150));
         classesButton.setForeground(Color.WHITE);
     }
-    
+
     private JPanel createHeader() {
         JPanel headerPanel = new JPanel() {
             @Override
@@ -80,7 +80,7 @@ public class TeacherDashboardView extends JPanel {
         // Left section: Logo and school name
         JPanel leftSection = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
         leftSection.setOpaque(false);
-        
+
         // Logo
         JLabel logoLabel = new JLabel();
         try {
@@ -97,31 +97,31 @@ public class TeacherDashboardView extends JPanel {
         schoolNameLabel.setFont(new Font("Arial", Font.BOLD, 16));
         schoolNameLabel.setForeground(Color.WHITE);
         leftSection.add(schoolNameLabel);
-        
+
         headerPanel.add(leftSection, BorderLayout.WEST);
 
         // Center section: Navigation
         JPanel centerSection = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
         centerSection.setOpaque(false);
-        
+
         // Navigation buttons
         homeButton = createNavButton("Home", true);
         centerSection.add(homeButton);
 
         classesButton = createNavButton("Classes", false);
         centerSection.add(classesButton);
-        
+
         headerPanel.add(centerSection, BorderLayout.CENTER);
 
         // Right section: User info panel
         JPanel rightSection = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 0));
         rightSection.setOpaque(false);
-        
+
         // User info container
         JPanel userInfoPanel = new JPanel();
         userInfoPanel.setLayout(new BoxLayout(userInfoPanel, BoxLayout.Y_AXIS));
         userInfoPanel.setOpaque(false);
-        
+
         JLabel userNameLabel = new JLabel("Teacher");
         userNameLabel.setFont(new Font("Arial", Font.BOLD, 12));
         userNameLabel.setForeground(Color.WHITE);
@@ -133,7 +133,7 @@ public class TeacherDashboardView extends JPanel {
         userRoleLabel.setForeground(new Color(136, 136, 136));
         userRoleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         userInfoPanel.add(userRoleLabel);
-        
+
         rightSection.add(userInfoPanel);
 
         // Logout button
@@ -211,10 +211,10 @@ public class TeacherDashboardView extends JPanel {
 
     private void handleLogout() {
         int result = JOptionPane.showConfirmDialog(
-            this,
-            "Are you sure you want to logout?",
-            "Confirm Logout",
-            JOptionPane.YES_NO_OPTION
+                this,
+                "Are you sure you want to logout?",
+                "Confirm Logout",
+                JOptionPane.YES_NO_OPTION
         );
 
         if (result == JOptionPane.YES_OPTION) {
@@ -231,7 +231,7 @@ public class TeacherDashboardView extends JPanel {
     private JScrollPane createHomePanel() {
         JPanel homeContentPanel = new JPanel();
         homeContentPanel.setLayout(new BoxLayout(homeContentPanel, BoxLayout.Y_AXIS));
-        homeContentPanel.setBackground(new Color(245, 245, 245));
+        homeContentPanel.setBackground(new Color(78, 129, 136));
         homeContentPanel.setBorder(new EmptyBorder(20, 30, 20, 30));
 
         // Welcome section
@@ -270,32 +270,52 @@ public class TeacherDashboardView extends JPanel {
         homeContentPanel.add(welcomePanel);
         homeContentPanel.add(Box.createRigidArea(new Dimension(0, 20)));
 
-        // Main content card
-        JPanel cardPanel = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2d = (Graphics2D) g;
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        // Load real courses from backend and display them
+        BackendManager backend = BackendManager.getInstance();
+        List<Course> teacherCourses = backend.getCoursesForCurrentUser();
 
-                g2d.setColor(Color.WHITE);
-                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
+        for (Course course : teacherCourses) {
+            JPanel classCard = createStudentStyleClassCard(
+                    course.getCourseCode(),
+                    course.getCourseName()
+            );
+            classCard.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-                g2d.setColor(new Color(220, 220, 220));
-                g2d.setStroke(new BasicStroke(1));
-                g2d.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 12, 12);
-            }
-        };
-        cardPanel.setLayout(new GridBagLayout());
-        cardPanel.setOpaque(false);
-        cardPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 300));
-        cardPanel.setPreferredSize(new Dimension(1100, 300));
-        cardPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+            classCard.addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override
+                public void mouseClicked(java.awt.event.MouseEvent e) {
+                    mainFrame.showClassDetail(
+                            course.getCourseName(),
+                            course.getCourseCode()
+                    );
+                }
+            });
 
-        // Empty state - centered
+            homeContentPanel.add(classCard);
+            homeContentPanel.add(Box.createRigidArea(new Dimension(0, 20)));
+        }
+
+        // Scroll pane
+        JScrollPane scrollPane = new JScrollPane(homeContentPanel);
+        scrollPane.setBorder(null);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        scrollPane.setBackground(new Color(78, 129, 136));
+
+        return scrollPane;
+    }
+
+    // Classes panel - now empty or can be used for other content
+    private JScrollPane createClassesPanel() {
+        JPanel classesContentPanel = new JPanel();
+        classesContentPanel.setLayout(new BoxLayout(classesContentPanel, BoxLayout.Y_AXIS));
+        classesContentPanel.setBackground(new Color(78, 129, 136));
+        classesContentPanel.setBorder(new EmptyBorder(20, 30, 20, 30));
+
+        // Empty state panel
         JPanel emptyStatePanel = new JPanel();
         emptyStatePanel.setLayout(new BoxLayout(emptyStatePanel, BoxLayout.Y_AXIS));
         emptyStatePanel.setOpaque(false);
+        emptyStatePanel.setBorder(new EmptyBorder(100, 0, 0, 0));
 
         JLabel emptyIcon = new JLabel("📚");
         emptyIcon.setFont(new Font("Arial", Font.PLAIN, 48));
@@ -306,76 +326,21 @@ public class TeacherDashboardView extends JPanel {
 
         JLabel emptyText = new JLabel("Content will be added here soon");
         emptyText.setFont(new Font("Arial", Font.PLAIN, 14));
-        emptyText.setForeground(new Color(136, 136, 136));
+        emptyText.setForeground(new Color(218, 209, 193));
         emptyText.setAlignmentX(Component.CENTER_ALIGNMENT);
         emptyStatePanel.add(emptyText);
 
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        cardPanel.add(emptyStatePanel, gbc);
-
-        homeContentPanel.add(cardPanel);
+        classesContentPanel.add(emptyStatePanel);
 
         // Scroll pane
-        JScrollPane scrollPane = new JScrollPane(homeContentPanel);
+        JScrollPane scrollPane = new JScrollPane(classesContentPanel);
         scrollPane.setBorder(null);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
-        scrollPane.setBackground(new Color(245, 245, 245));
+        scrollPane.setBackground(new Color(78, 129, 136));
 
         return scrollPane;
     }
 
-    // In TeacherDashboardView.java - Update createClassesPanel()
-
-private JScrollPane createClassesPanel() {
-    JPanel classesContentPanel = new JPanel();
-    classesContentPanel.setLayout(new BoxLayout(classesContentPanel, BoxLayout.Y_AXIS));
-    classesContentPanel.setBackground(new Color(78, 129, 136));
-    classesContentPanel.setBorder(new EmptyBorder(20, 30, 20, 30));
-
-    // Title
-    JLabel classesTitle = new JLabel("Classes");
-    classesTitle.setFont(new Font("Arial", Font.PLAIN, 14));
-    classesTitle.setForeground(new Color(176, 176, 176));
-    classesTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
-    classesContentPanel.add(classesTitle);
-
-    classesContentPanel.add(Box.createRigidArea(new Dimension(0, 20)));
-
-    // Load real courses from backend
-    BackendManager backend = BackendManager.getInstance();
-    List<Course> teacherCourses = backend.getCoursesForCurrentUser();
-
-    for (Course course : teacherCourses) {
-        JPanel classCard = createStudentStyleClassCard(
-            course.getCourseCode(), 
-            course.getCourseName()
-        );
-        classCard.setAlignmentX(Component.LEFT_ALIGNMENT);
-        
-        classCard.addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override
-            public void mouseClicked(java.awt.event.MouseEvent e) {
-                mainFrame.showClassDetail(
-                    course.getCourseName(), 
-                    course.getCourseCode()
-                );
-            }
-        });
-        
-        classesContentPanel.add(classCard);
-        classesContentPanel.add(Box.createRigidArea(new Dimension(0, 20)));
-    }
-
-    // Scroll pane
-    JScrollPane scrollPane = new JScrollPane(classesContentPanel);
-    scrollPane.setBorder(null);
-    scrollPane.getVerticalScrollBar().setUnitIncrement(16);
-    scrollPane.setBackground(new Color(78, 129, 136));
-
-    return scrollPane;
-}
     private JPanel createStudentStyleClassCard(String courseCode, String courseName) {
         JPanel card = new JPanel() {
             @Override

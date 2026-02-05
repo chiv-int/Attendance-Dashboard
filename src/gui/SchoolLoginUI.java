@@ -84,26 +84,6 @@ public class SchoolLoginUI extends JFrame {
         gbc.gridy = 1;
         gbc.insets = new Insets(10, 20, 20, 20);
         cardPanel.add(nameLabel, gbc);
-        
-        // ID label
-        JLabel idLabel = new JLabel("ID");
-        idLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-        idLabel.setForeground(new Color(100, 100, 100));
-        gbc.gridy = 2;
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.insets = new Insets(15, 20, 5, 20);
-        cardPanel.add(idLabel, gbc);
-        
-        // ID text field
-        JTextField idField = new JTextField();
-        idField.setFont(new Font("Arial", Font.PLAIN, 12));
-        idField.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200)));
-        idField.setPreferredSize(new Dimension(0, 35));
-        gbc.gridy = 3;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(0, 20, 15, 20);
-        cardPanel.add(idField, gbc);
-        
         // Username label
         JLabel usernameLabel = new JLabel("Username");
         usernameLabel.setFont(new Font("Arial", Font.PLAIN, 12));
